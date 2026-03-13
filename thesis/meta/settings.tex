@@ -1,0 +1,113 @@
+%encoding
+\usepackage[utf8]{inputenc}
+
+%layout (margins)
+\usepackage{geometry}
+\geometry{
+    a4paper, 
+    twoside, 
+    inner=3.5cm,
+    outer=3cm,
+    top=3cm,
+    bottom=3cm}
+    
+%footer/header style
+\usepackage{fancyhdr}
+\fancyhf{}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt}
+\usepackage{listings}
+\input{meta/solidity-highlighting.tex}
+\input{meta/js-highlighting.tex}
+%font sizes and spacing
+\usepackage{titlesec}
+\usepackage[fontsize=12pt]{scrextend}
+\titleformat*{\section}{\fontsize{17}{17}\selectfont\bfseries}
+\titleformat*{\subsection}{\fontsize{15}{8}\selectfont\bfseries}
+\titleformat*{\subsubsection}{\fontsize{13}{6}\selectfont\bfseries}
+
+%line spacing
+\renewcommand{\baselinestretch}{1.5} 
+\titlespacing*{\subsection}{0pt}{6ex}{1.5ex}
+\titlespacing*{\subsubsection}{0pt}{5ex}{1ex}
+
+%no page-number on empty pages
+\usepackage{emptypage}
+
+%sections start at new odd page
+\let\oldsection\section
+\def\section{\cleardoublepage\oldsection}
+
+%use part to reset section names in appendices
+\usepackage{titlesec}
+\titleformat{\part}
+  {}{}{0pt}{}
+\counterwithin*{section}{part}
+
+
+%pages with different margins
+\usepackage{eso-pic,graphicx}
+
+%list of figures and tables (one listing)
+\def\table{\def\figurename{Table}\figure}
+\let\endtable\endfigure 
+\renewcommand{\listfigurename}{Figures and tables}
+
+%Literature title
+\renewcommand\refname{Literature}
+
+
+
+%equations  
+\usepackage{amsmath}
+\usepackage{calc}
+\counterwithout*{section}{equation}
+
+%lists
+\usepackage{enumitem}
+
+%figures
+\usepackage{wrapfig}
+\usepackage{subfig}
+%figure captions
+\usepackage[font=small,labelfont=bf,justification=centering]{caption}
+%images
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{tabularx}
+
+\graphicspath{ {./images/} }
+
+%tables
+\usepackage{multirow}
+\usepackage{xcolor,colortbl}
+
+
+
+%custom 
+\usepackage[square,numbers]{natbib}
+\usepackage[strings]{underscore}
+\usepackage{pdfpages}
+
+%colors
+\definecolor{Gray}{gray}{0.85}
+\definecolor{red}{HTML}{FFA07A}
+\definecolor{green}{HTML}{D0F0C0}
+
+%extra line spaces
+\newcommand{\spacenewline}{\vspace{\baselineskip}\noindent}
+\newcommand{\spacedoublenewline}{\vspace{2\baselineskip}\noindent}
+
+%paragraph with a bold title
+\newcommand{\myparagraph}[1]{\paragraph{#1}\mbox{}\\}
+
+%reference with (see...)
+\newcommand{\reffig}[1]{\textit{(see Figure \ref{#1})}}
+\newcommand{\reftab}[1]{\textit{(see Table \ref{#1})}}
+\newcommand{\refchpt}[1]{\textit{(see Chapter \ref{#1})}}
+\newcommand{\refeq}[1]{\textit{(see Equation \ref{#1})}}
+
+
+%full-page background image - ZADANIE
+\newcommand{\bkgimg}[1]{\AddToShipoutPictureBG*{\includegraphics[width=\paperwidth,height=\paperheight]{#1}}}
+

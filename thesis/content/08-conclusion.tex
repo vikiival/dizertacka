@@ -1,0 +1,24 @@
+%Conclusion
+\section{Conclusions and Future Work}
+\label{sec:conclusions}
+
+Internet of Value is a new and hot topic for the upcoming years.
+It is undeniable that blockchain technology is already an essential part of the technological stack, although the Web3 movement is relatively a new term.
+
+Blockchain is a perfect technology for use-cases that require a high level of verifiable trust, such as sharing money,assets or other form of value. Thanks to the technologies such as smart contracts we can create a decentralized system that is verifiable, trustless and censorship-resistant.
+Within such networks, there is a growing demand for intelligent systems that can autonomously evaluate and operate with digital assets while maintaining transparency and security.
+
+There are already a number of ways to combine blockchain networks and AI agents.   Many of these platforms just concentrate on social engagement or transaction execution. Therefore, new strategies for reliable autonomous operation and systematic asset appraisal are required. While Griffain, Autonolas, and Virtuals Protocol are examples of recent platforms that provide several architectural options, none of them offer a formal framework for multi-dimensional asset assessment along with verified execution primitives.
+
+We developed a four-layer design that divided human contact, data gathering, agentic reasoning, and on-chain settlement in order to overcome the execution difficulty. To guarantee predictable behavior, the design uses specialized agents for valuation, decision-making, and execution. We developed the Non-Fungible Token as Account (NFTAA) idea at the heart of the on-chain layer, allowing conventional NFTs to own and be owned at the same time. As a result, a bidirectional ownership model that is necessary for autonomous agent operation is created.
+
+The system showed suitable resilience to practical difficulties. We examined hostile quick injection attempts, missing data circumstances, and contradicting information sources. By clearly identifying unknowns and suitably lowering confidence levels, Claude Sonnet 4.5 performed exceptionally well. Prompt injection attacks included into user inputs and data sources were effectively repelled by all three models.
+
+For production deployment, we believe that model selection is crucial. Despite being 22\% more expensive than rivals, Claude Sonnet 4.5 has the highest accuracy-to-cost ratio. Rather than concentrating just on computing efficiency, we prioritized suggestion quality. Additionally, it may be said that the modular architecture permits component substitution without system redesign as model capabilities continue to develop.
+
+For the governance use case, we demonstrated that agents can evaluate Polkadot treasury proposals based on objective criteria derived from the availability-durability-utility framework. Using blockchain-in-the-loop approach, agents spawn in response to on-chain events and incorporate historical context alongside community guidelines. This reduces evaluation time by 98\% while maintaining decision quality comparable to human experts.
+
+To sum it up, we successfully designed and implemented an agentic system for asset valorization in the Internet of Value by introducing a formal value framework, modular architecture with specialized agents, and the Non-Fungible Token as Account execution primitive. The system achieves expert-level accuracy while reducing evaluation time and cost, demonstrating that autonomous agents can reliably operate with blockchain assets when provided with appropriate abstractions for value assessment and execution guarantees.
+
+
+For future work, we point out several modifications and improvements to better serve the purpose of autonomous asset management in the Internet of Value. By learning the best weight assignments from user behavior and decision outcomes rather than depending on manually defined profiles, machine learning techniques applied to the intent-based weighting mechanism will enhance overall performance. As noted by Lohmer et al. \cite{Lohmer2024}, improvements would surely result from adding ethical and sustainability components to the value framework in order to better serve communities and regulatory situations where social benefit and environmental effect are important. From the security perspective, developing cryptographic verification mechanisms for data provenance, consensus-based validation across multiple independent sources, and systematic red-teaming exercises would address threats from adversarial data providers and compromised API endpoints.

@@ -1,0 +1,48 @@
+\documentclass{article}
+
+\input{meta/settings.tex}
+
+\begin{document}
+
+%all mandatory parts 
+ \input{preamble/title.tex}
+%  \input{preamble/assignment_sk}
+%  \input{preamble/assignment_proposal}
+ \input{preamble/assignment.tex}
+ \input{preamble/declaration.tex}
+ \input{preamble/thanks.tex}
+ \input{preamble/annotations.tex}
+
+% %list of contents and figures
+ \tableofcontents{}
+ \listoffigures{}
+
+% %content
+
+ \input{meta/content_settings.tex}
+ \input{content/01-introduction}
+ \input{content/02-fundamentals}
+ \input{content/03-analysis}
+ \input{content/03-01-existing-solutions}
+ \input{content/04-aims}
+ \input{content/05-architecture}
+%  \input{content/06-impl}
+ \input{content/07-evaluation}
+ \input{content/08-conclusion}
+%  \input{appendicies/resume_in_slovak}
+
+% %bibliograpghy
+ \bibliographystyle{unsrtnat}
+% \bibliographystyle{plain}
+ \bibliography{references.bib}
+ % \bibliography{export.bib}
+
+
+%appendicies
+% \input{meta/appendicies_setting.tex}
+
+% \input{appendicies/work_plan.tex}
+% \input{appendicies/papers.tex}
+\input{appendicies/contents}
+
+\end{document}

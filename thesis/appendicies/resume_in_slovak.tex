@@ -1,0 +1,108 @@
+ \section{Resumé}
+ 
+ Nasledujúca kapitola slúži slúži ako prostriedok pre ľudí ktorí nerozumejú Anglickému jazyku aby dokázali porozumieť tejto práci.
+ Cieľom tejto práce je výskum a vývoj univerzálnej aplikácie na zdieľanie aktív na báze blokchainovej tehcnológie.
+ 
+ Ako je však možné takéto riešenie overiť? Zadefinovali sme si teda 4 výskumné otázky na ktoré sa snažíme v rámci práce odpovedať
+ 
+ \begin{itemize}
+  \item Aké je naj efektívnejšie riešenie na vytvorenie univerzálnej architektúry na zdieľanie aktív postavené na Smart kontraktoch?
+  \item Aké sú existujúce riešenie na zdieľanie aktív?
+  \item Vieme navrhnúť architektúru ktorá je efektívna na spotrebu Gas?
+  \item Je možné využiť naše riešenie v rámci decentralizovaných financií?
+\end{itemize}
+ 
+ 
+ Úvod tejto práce začína tézou od Svetového ekonomického fóra že v roku 2030 bude všetko ako služba. To znamená že nebudeme autá vlastniť a taktiež ani byty teda nehnuteľnosti ale všetko budeme S ostatnými ľuďmi. Dá sa to ako šialená predstava ale už dnes je možné použiť zdieľaný bicykel, kolobežku prípadne auto.
+ Vďaka tomuto prístupu vieme ušetriť veľa oxidu uhličitého a zvýšiť počet parkovacích miest bez potreby ničenia zelene.
+ Taktiež vďaka službám ako je AirBnb je možné prenajať svoju nevyužitú izbu na krátke obdobie a tým si privyrobiť nejaké peniaze. Zdieľaná ekonomika však nie je limitovaná iba na fyzické statky. Príkladom môže byť aplikácia TaskRabbit kde je možné zaplatiť si suseda aby nám postavil skriňu z Ikey. Problémom týchto služieb je však Centralizácia. Naše data sú uložené na serveroch tretích strán a teda zvyšujeme riziko krádeže identity a taktiež sa Vystavujeme tomu že služba nie je dostupná stále. Blokchain rieši tento problém tým že ponúka decentralizovanú databázu ktorá je verejná a nemená.
+ 
+ Ako sme teda spomínali cieľom tejto práce je navrhnúť univerzálne riešenie zdielania aktív na blockchainovej novej báze.
+ 
+Práca je organizovaná nasledovné: kapitola dva analyzuje blok chain novú technológiu deje výhody a nevýhody a taktiež rozoberá tokenizáciu aktív. Kapitola 3 preskúmava pojem zdieľanej ekonomiky a prečo závisí naša budúcnosť aj na tomto princípe. Kapitola 4 analyzuje existujúce riešenia ktoré sa venujú zdieľaniu aktívna a teda porovnáva ich medzi sebou vrátane vyzdvihnutia jednotlivých plusov a mínusov v rámci každého riešenia. Kapitola 5 navrhuje a novú univerzálnu architektúru na zdieľanie aktív vrátane nového odznakového registra. Kapitola 6 rozoberá podrobne implementáciu navrhnutej architektúry ktorá je ďalej testovaná v kapitole 7. Posledná kapitola zhrňuje naše výsledky a kladie dôraz na odpovedanie výskumných otázok.
+
+Ako sme naznačili kapitola dva sa venuje základom blok chain novej technológie. Vysvetľujeme rozdiel medzi konsenzuálne mi algoritmami dôkaz prácou dôkaz majetkom a nominovaným dôkazom majetku. Následne delíme blokchainy na verejné bolo Privátne a Privátne. Ďalej sa práca venuje Smart kontraktom ktoré spúšťajú svoju biznis sovu logiku na decentralizovaných zariadeniach. So Smart kontrakt o vychádzajú nasledovné štandardy ERC-20, ERC-721, ERC-777 a ERC-1155. Keďže blokchain ako úložisko je drahé porovnávame decentralizované úložiská menovite: IPFS, StorJ a Arweave. V neposlednom rade sa dostávame k analýze tokenového registra.
+
+\begin{table}[ht]
+\centering
+\caption{Comparison of token types to token functions}
+\begin{tabular}{ |c|c|c|c|c| } 
+\hline
+        & ERC-20 & ERC-721 & ERC-777 & ERC-1155                                 \\
+\hline
+Payment & Yes    & No      & Yes     & Yes                                      \\
+Utility & Yes    & Yes     & Yes     & Yes                                      \\
+Asset   & Yes    & Yes     & Yes     & Yes                                      \\
+Yield   & Yes    & No      & Yes     & Yes                                       \\
+\hline
+\end{tabular}
+\label{table:tokencomparisonsk}
+\end{table}
+
+Ako vidíme v tabuľke \ref{table:tokencomparisonsk} každý token má 4 základné funkcie: platba, utilita, aktívum a zisk.
+
+Kapitola 3 analyzuje zdieľanú ekonomiku prečo je dôležitá pri udržateľnosti našej planéty a taktiež k výrobe nepotrebných statkov. Príkladom môžu byť OH v Brazílii kde namiesto toho aby postavili obrovský hotel pre návštevníkov odporučili aby ľudia použili platformu AirBnb vďaka tomu zarobili obyčajný ľudia na olympijských hrach a návštevníci mohli spoznať lepšie kultúru Brazílie. Problémom však takýchto riešení ostáva to že sú centralizované veru pri veľké poplatky niekedy okolo 14\% a taktiež reputáciu ktorou budujeme v jednej službe musíme znova získať ďalšej.
+
+Naše riešenie však nie je prvé. Aktuálne existujú mnohé služby na báze blokchainu, ktoré však dokážu zdierať iba jedno Aktívum. Príkladom takýchto riešení je napríklad ShareRing, Maple Finance a podobne. V závere kapitoly analyzujeme výhody a nevýhody každého spomenutého riešenia.
+
+Dizajn našej architektúry rozobraté v kapitole 5 vychádza z pôvodného riešenia Car sharing ktorý sme nedávno navrhli. V procese návrhu architektúry opisujeme že aplikácia by mala fungovať veľmi jednoducho a teda keď chce používateľ spraviť aplikáciu zdieľanej ekonomiky cez našu architektúru mal by si zvoliť Smart kontrakt pre aktívom pre prístup k aktívu a pre odmenu za používanie aktíva. Navyše vďaka modulárneho riešeniu je možné pridať Aktívum do sveta decentralizovaných financií.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=\columnwidth]{images/Factory.png}
+    \caption{Diagram of creating business using smart contract marketplace}
+    \label{fig:contractmarketplacesk}
+\end{figure}
+
+Na obrázku \ref{fig:contractmarketplacesk} vidíme diagram toho ako sa vytvára decentralizované biznis riešenie na blok chain. Používateľ si musí vybrať kontrakt pre aktívu, kontrakt pre prístup a dodatočne avšak nie povinne kontrakt pre odmenu. Kontrakt pre odmenu môže byť vo forme zameniteľných aj nezameniteľných tokenov. Po vybratí všetkých kontraktov ZADA používateľ požiadavku na vytvorenie týchto kontraktov. Následne Smart kontrakt fabrika Vytvorí nové inštancie týchto kontraktov, prepoj ich medzi seba a nastaví používateľa ako majiteľa všetkých 3 kontraktov.
+
+Následne rozoberáme architektúru od znakového registra ktorý by mal slúžiť na riadenie reputácie medzi jednotlivými aplikáciami v rámci zdieľanej ekonomiky. Výhodou tohto registra je to že na hodnotení jednotlivých účastníkov sa zúčastnil ďalší obyčajný ľudia ktorí vďaka tomu že pridajú svoj posudok získavajú odmenu. Navyše navrhujeme aby aplikácia využívala generovanie kryptografickej peňaženky pomocou emailu a hesla pretože si myslíme že takéto riešenie priláka viacej používateľov.
+
+Medzi funkčné charakteristiky naše aplikácie patrí:
+
+\begin{itemize}
+    \item Schopnosť vytvoriť zameniteľný token.
+    \item Schopnosť vytvoriť nemeniteľný token.
+    \item Vytvorenie peňzaženky pomocou emailu a hesla
+    \item Verifikovat používateľa cez decentralizovanú identitu.
+\end{itemize}
+Na konci kapitoly sme sa rozhodli porovnať naše riešenie s ostatnými riešeniami spomenutej v kapitole 4.
+
+Nasledujúca kapitola 6 opisuje implementáciu navrhnutého riešenia. Naše finálne riešenie pozostáva z kontraktov typu fabrika a Abstraktná fabrika ktoré majú za úlohu vytvoriť Smart kontrakty pre Aktívum prístup a odmenu na základe konfiguračného objektu. Konfiguračný objem obsahuje adresu vytvoriť, jeho názov a jeho symbol. 
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=\columnwidth]{images/abstractfactory.png}
+    \caption{Abstract factory pattern}
+    \label{fig:abstractfactorysk}
+\end{figure}
+
+Diagram \ref{fig:abstractfactorysk} opisuje podstatu nášho riešenia používateľ zavolá funkciu vytvor s konfiguračný mi parametrami na Smart kontakte hlavná fabrika. Na základe konfigurácia tento Smart kontrakt hľadá fabriky od ich adresa mi a testuje či je možné vyprodukovať zvolené Aktívum teda či je to Aktívum ako také alebo prístupový token. Ak je to teda možné obe fabriky vyprodukujú inštancie zvolených kontraktov a nastavia Maťa kontraktu na pôvodného volajúceho
+
+V kapitole 7 sa zaoberáme testovaním implementovaného riešenia. Na testovanie sme použili zariadenie MacBook pro s architektúrou M1 a 16GB RAM. Pre porovnanie efektívnosti riešenia sme porovnali našu novú architektúru s architektúrou v aplikácii Car sharing. 
+
+\begin{table}[ht!]
+\centering
+\caption{Comparison of gas effectivness between car-sharing and new architecture}
+\begin{tabular}{ |m{9em}|c|c|c| } 
+\hline
+(price in gas) & Car-sharing  & New architecture & Change (\%)  \\
+\hline
+Deploy set of contracts & 5207500  & 4688444 &  9.97 \\
+\hline
+Create one asset & 444015  & 361138 &  18.66 \\
+\hline
+Rent one asset & 209244  & 194899 &  6.85 \\
+\hline
+Change implementation & 5207500  & 3793998 &  27.14 \\
+\hline
+\end{tabular}
+\label{table:gassk}
+\end{table}
+
+V tabuľke je možné vidieť že nová architektúra je efektívnejšia a a teda sa nám podarilo ušet. iť v priemere 15,65\%. Ako je to možné? V prvom rade sme sa zbavili funkcií ktoré sú súčasťou knižnice OpenZeppelin a boli pre nás nepotrebné. Navyše sme sa zbavili súčasť ti kontroly kódu ktoré boli nepotrebné a len boli náročné na Gas.
+
+Keď ideš aj chceme zaručiť aby naše kontrakty boli bezpečne vykonaj sme statickú analýzu kódu použitím znakov v Vuitton kóde vieme nájsť bezpečnostné diery. Tieto testy sme bežali pomocou knižnice Mythril od firmy Consensys. Okrem toho sme zabezpečili pokrytie kódu jednotkovými testami, rozbehli na výbornú.
+
+Či je predikcia Svetového ekonomického fóra o tom ako bude vyzerať svet v roku 2030 pravdivá alebo nepravdivá zdieľaná ekonomika je súčasťou nášho života už dnes. Namiesto toho aby sme si kúpili auto s cenou kov viac ako 20 000 EUR si vieme vozidlo požičať autopožičovne alebo od suseda ktorému prispejeme na poistku a namiesto hotelov vieme využiť zdieľanú izbu v AirBnb.
+Zdieľaná ekonomika prináša mnoho či už finančných alebo aj ekologických výhod. Cieľom tejto práce bolo priniesť prvé univerzálne architektonické riešenie zdieľanie aktív na báze blok chainu. Základe podrobne analýzy zisťujeme že použiť blok chain namiesto tradičného riešenia pridáva množstvo Benefi tou ako sú zvýšená bezpečnosť a Nemennosť dať taktiež blok chain prináša stopercentnú funkčnosť stále oproti tradičným cloudovým riešeniam. 

@@ -1,0 +1,10 @@
+\addtocontents{toc}{\setcounter{tocdepth}{-10}}
+\part{}
+\addtocontents{toc}{\setcounter{tocdepth}{1}} 
+\renewcommand*{\addcontentsline}[3]{\addtocontents{#1}{\protect\contentsline{#2}{#3}{}}}
+\renewcommand\thesection{\Alph{section}}
+\renewcommand{\thepage}{\thesection \arabic{page}}
+\fancyfoot[LE,RO]{\thepage}
+
+%set section name + restart page numbering
+\newcommand{\appsection}[1]{\section{#1}\setcounter{page}{1}}

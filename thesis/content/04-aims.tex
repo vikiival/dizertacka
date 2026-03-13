@@ -1,0 +1,46 @@
+\section{Aims of dissertation thesis}
+\label{sec:aims}
+
+This chapter summarizes the research findings around decentralized ledger technology in the context of the Internet of Value.
+
+The current state-of-the-art research defines the Internet of Value (IoV) as an emerging paradigm in which value can be exchanged as easily as information on the Internet. The most comprehensive definition comes from Lohmer et al. \cite{Lohmer2024}, who describe IoV as enabling the direct transfer of assets of any kind as well as processing and settlement of business transactions based on blockchain technology in conjunction with digital platforms, tokens, smart contracts, and other technologies such as the Internet of Things and artificial intelligence. Its principles are to create a system that is compliant with data protection values, provides equal and fair access for all participants, effectively represents digital and physical assets, and enables disintermediation for direct peer-to-peer communication and the exchange of values. On the other hand, Hanneke et al. \cite{Hanneke2024} present the Internet of Value as the next iteration of the Internet, in which blockchain plays a significant role in value transfer and the enforcement of digital ownership.
+
+However, the value transfer is not frictionless, and practical barriers persist. Value is usually fragmented in multiple ecosystems where each blockchain has distinct token standards, governance mechanisms, and consensus rules. Therefore, evaluating asset data requires us to learn various block explorer interfaces, understand the technology's specific caveats, and conduct our own research on marketplace APIs.
+Additionally, executing transactions is not a straightforward process and demands an understanding of protocol-specific constraints. These complexities create high barriers to entry and limit the velocity of value exchange. On the other hand, complexity can be abstracted away by creating specialized user interfaces\footnote{https://x.com/Just_Luuuu/status/1722981269397487780}.
+
+With the maturity of large language models and emerging technologies such as the Model Context Protocol (MCP), which ensures reproducible, deterministic tool invocation, we can now delegate complex tasks to AI models capable of autonomous execution. These autonomous systems are referred to as AI agents or agentic systems. However, one critical question emerges: how can autonomous agents operate effectively with blockchain assets, with minimal errors and high levels of agency?
+
+The intersection of agentic systems and IoV creates a powerful cooperation. While blockchain serves as the immutable settlement layer, intelligent agent systems provide intelligent reasoning to support better decision-making. Thanks to the reasoning capability in thinking models \cite{Sumers2024, Wu2023}, agents can process and evaluate multiple sources of information and transform it into a preferred output. Instead of creating complex user interfaces, we can leverage AI's flexibility to interpret our goals into executable blockchain transactions.
+
+How can autonomous agents effectively operate assets on blockchain? One of the goals of our work is to propose a formal value framework for measuring multidimensional asset value. We designed the framework to provide objective criteria for asset evaluation and to be flexible enough to adjust weights based on operational goals. By formalizing value as a weighted function of components, we create a stable foundation for agentic decision-making that transcends subjective judgment while accommodating context-dependent user goals.
+
+The research we are proposing represents a new approach to the Internet of Value, a paradigm shift in the way we use digital assets over blockchain technology using agentic systems.
+
+The main focus areas are captured in three research questions:
+
+\begin{enumerate}
+   \item How can we and AI agents effectively operate with assets in the field of IoV?
+   \item Propose the new architecture for an agetic system in the context of blockchain and the Internet of Value.
+   \item Is it possible to use an AI agent to analyze the value of treasury proposals in the context of on-chain governance?
+\end{enumerate}
+
+The first research question addresses the first critical gap by emphasizing on effective asset operation within the Internet of Value.
+One of our novel solutions is the concept of a Non-Fungible Token as Account (NFTAA), which transforms a non-fungible token into an intelligent entity that can own and operate with other tokens. Moreover, we can set constraints and enforce on-chain policies. However, unlike ERC-6551, which relies on registry-based deployment, NFTAA is more flexible in meeting business needs and therefore allows custom rules to be integrated on the on-chain level. This allows the agent to manage complex asset portfolios, while the user, as the owner of the non-fungible token, can intervene. Due to the composable nature of smart contracts, the NFTAA could be extended with various add-ons, thereby serving as an agent's identity rather than just an execution primitive. Moreover, as mentioned earlier, we can create and manage protocol allowlists and verify other on-chain requirements. All of this provides the specialized primitives for policy enforcement, risk isolation, and composability that current account models lack.
+
+The second research question focuses on developing a novel architecture that bridges human intent with on-chain execution.
+The standard approach to building an agentic solution is tight coupling of components, which ensures a somewhat straightforward implementation. Therefore, agents are usually built with a specific purpose and can process only one task\footnote{Just sending tokens on a particular chain}.
+We explored an operational framework in which agents are divided into multiple independent layers, acting as a flexible pipeline rather than a transactional facilitator. One of the critical layers in this framework is an agent with contextual asset intelligence. AI agents can understand not only the technical properties of blockchain assets but also their contextual significance and relationship networks within the multi-dimensional value space. This fundamentally shifts the view of asset valuation from metric evaluation towards a deeper understanding of value representation across multiple dimensions.
+
+Using a multi-layered approach, we can address significant asset challenges in decentralized environments while maintaining flexibility and enabling composability. The main benefit is that we can stay in the loop throughout the process and are not left out of the decision-making. Our architecture consists of specialized layers. First is valuation agents for data acquisition and metric computation across the three value dimensions. The second one is decision agents for intent-based contextualization via weighted evaluation. Most importantly, the execution agents for on-chain operationalization via NFTAA primitives.
+
+The third research question focuses on the application of agentic systems in the domain of on-chain governance. Specifically, we will explore the use of AI agents to evaluate treasury proposals. As the Internet of Value expands across multiple blockchains and incorporates an ever-growing diversity of asset types from tokenized real-world assets to intellectual property rights, the challenge of funding allocation becomes increasingly complex. Projects seeking funding through quadratic funding models or on-chain treasury proposals require evaluation of extensive on-chain and off-chain data. This task exceeds the capacity of human evaluators. Traditional governance relies heavily on manual review by community members who may lack time or expertise. We apply our value framework to governance proposals; therefore, agents can provide an objectively generated, unbiased report based on resource scarcity, long-term sustainability, and the proposal's community benefits. This approach is particularly relevant for systems like Polkadot, where the treasury holds substantial resources that must be allocated efficiently and transparently.
+
+What connects AI agents with the Internet of Value? The unique value proposition is that we need to connect people, agents, and value sharing trustlessly over the Internet. The AI agent acts as a virtual assistant that can understand complex human thoughts and translate them into actions. Similar to systems presented in Chapter \ref{sec:relatedwork}, wrapping complex crypto-financial instruments such as exchange, tokenization, or liquidity provision into simple instructions can onboard many non-crypto-native people.
+
+Along with the main research questions, we have identified specific challenges that are worth tackling:
+
+\begin{enumerate}
+  \item Current blockchain systems lack standard for integrating autonomous agents with on-chain execution.
+  \item There is no framework that can objectively evaluate heterogeneous asset types while adapting to diverse user intents.
+  \item Manual evaluation of on-chain treasuries proposal evaluation, is biased which results in inconsistent decision-making.
+\end{enumerate}
