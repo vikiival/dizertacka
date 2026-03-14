@@ -2,15 +2,15 @@
 \label{sec:blockchain}
 
 "Do you need a blockchain?" was a breaking paper describing that most use cases do not need blockchain technology \cite{Wust2018}.
-With a good amount of cynicism, we can say that there is no significant difference between blockchain and a NoSQL database such as MongoDB \cite{Chowdhury2018}.
-Although this may be true to some extent, what sets blockchain apart from NoSQL databases is its consensus algorithm, which ensures that state transitions on the blockchain are legal \cite{Du2017}.
-To better compare MongoDB and blockchain, we can describe the main traits of the blockchain \cite{Zheng2017}.
+At a surface level, blockchain shares structural similarities with distributed NoSQL databases such as MongoDB: both store data across multiple nodes and support replication \cite{Chowdhury2018}.
+However, the fundamental difference lies in the trust model. A NoSQL database operates under the assumption that all participating nodes are honest and controlled by a single administrative entity. Blockchain, by contrast, is designed for adversarial environments where participants may act maliciously, and it relies on consensus algorithms to ensure that state transitions are valid without requiring trust in any single party \cite{Du2017}.
+The key properties that distinguish blockchain from traditional distributed databases are \cite{Zheng2017}:
 
 \begin{enumerate}
-    \item immutability,
-    \item trustless,
-    \item accessibility,
-    \item decentralized.
+    \item \textbf{Immutability} -- once data is committed to the chain, it cannot be altered or deleted without invalidating subsequent blocks, providing a tamper-evident audit trail.
+    \item \textbf{Trust minimization} -- participants can verify the correctness of state transitions independently through cryptographic proofs and consensus, eliminating the need to trust a central authority.
+    \item \textbf{Accessibility} -- depending on the network type (permissionless, permissioned, or semi-permissioned), participants can read from and write to the ledger according to the network's access policy.
+    \item \textbf{Decentralization} -- the ledger is replicated across geographically distributed nodes, eliminating single points of failure and censorship.
 \end{enumerate}
 
 When we want to add or modify the data from the blockchain, we need to create new updates to the chain called a transaction.
@@ -29,7 +29,7 @@ In general, the data structure of the blockchain is the following:
 
 
 However, to properly update the state, we need a genuine algorithm that can decide about the participant of the network that can validate the block validity.
-This algorithm is known as the consensus algorithm. The definition of "consensus" is a process where the network participants agree on the block's validity and the final state of the data in the network.
+This algorithm is known as the consensus algorithm. Formally, a consensus protocol must satisfy two fundamental properties: \textit{safety}, ensuring that all honest nodes agree on the same state and no conflicting transactions are finalized, and \textit{liveness}, guaranteeing that valid transactions are eventually included in the ledger. In the presence of malicious actors, these guarantees are studied under the framework of Byzantine fault tolerance (BFT), where the system can tolerate up to a threshold of faulty or adversarial nodes \cite{Du2017}.
 
 In the area of blockchain, there are many types of consensus algorithms. The most common are \cite{Bach2018}:
 
@@ -62,8 +62,7 @@ Therefore, having this ability to read the data from the blockchain, we can acce
 
 \subsection{Smart contracts}
 
-When we take a contract definition from the Cambridge Dictionary of English, we can say that a contract is a set of rules that define the system's behaviour. In other words, it is a formal agreement between the parties\footnote{https://dictionary.cambridge.org/dictionary/english/contract}.
-Smart contracts on blockchain work the same way as traditional contracts, but we do not need a trusted third party to verify correctness\cite{DeFilippi2018}. By the nature of blockchain technology correctness of contracts is handled by consensus algorithms.
+A smart contract is a deterministic program deployed on a blockchain that automatically enforces predefined rules when triggered by a transaction \cite{szabo1997contracts}. Unlike traditional legal contracts, which require trusted intermediaries for enforcement, smart contracts derive their guarantees from the underlying consensus mechanism: once deployed, their execution is verified by all participating nodes, making the outcome tamper-proof and publicly auditable \cite{DeFilippi2018}.
 How do smart contracts work? The smart contract is a program running on blockchain written in Turing-complete\footnote{In the context of EVM, Bitcoin Script is Turing-incomplete} programming language \cite{szabo1997contracts}.
 To deploy a smart contract, we need to create a smart contract code, compile it into the binary code and then send it to the blockchain as a transaction.
 Once the contract is deployed, it gets a unique address that is used to access the contract and the storage where we can store the data.
@@ -106,9 +105,8 @@ Moreover, thanks to the composable architecture, we can also represent keys for 
 In 2021 NFT got into the mainstream. Many people created their own collectible ERC-721 smart contracts that could be later sold on the blockchain-based marketplace.
 Nevertheless, how to distinguish between the two unique tokens? Many tokens hold additional metadata in the form of JSON \cite{entrikennon, Morgan2018} using predefined schema.
 
-Where is the metadata stored? That is an essential question.
-As we know, storing data in a blockchain is costly; therefore, many decentralized storages were created \cite{Benet2014, Wilkinson2014, Williams2019}.
-Table \ref{table:storages} shows the comparison between multiple decentralized storages \cite{Daniel2022}.
+Where is the metadata stored? This question is architecturally significant because the choice of storage directly affects key value dimensions of digital assets: availability (whether the metadata remains accessible), durability (whether it persists over time), and mutability (whether it can be updated). Since on-chain storage is prohibitively expensive for large data, the ecosystem has developed several decentralized storage solutions \cite{Benet2014, Wilkinson2014, Williams2019}.
+Table \ref{table:storages} compares these alternatives along dimensions relevant to our value framework \cite{Daniel2022}.
 
 \begin{table}[ht]
   \centering
@@ -131,16 +129,10 @@ Table \ref{table:storages} shows the comparison between multiple decentralized s
   \label{table:storages}
   \end{table}
 
-What if we would like to create both fungible and non-fungible tokens. That is where ERC-1155 comes into play.
-On the other hand, ERC-20 or ERC-721 requires us to create a new smart contract per each new collection.
-This is not the case with ERC-1155. We can create a smart contract that can hold multiple collections of tokens.
-It is beneficial for games that need a blockchain to store fungible game assets such as gold, silver or unique items with traits such as armour.
-Making transactions using ERC-1155 is very cheap, and it is estimated that we can save up to 80\% of transaction fees \cite{EIP1155}.
-
 What if we wanted to create both fungible and non-fungible tokens within one contract? Currently, ERC-20 or ERC-721 requires us to create a new smart contract for each new collection.
-On the other hand, using ERC-1155, we can create a smart contract that holds multiple token collections within a single contract.
-It is beneficial for games that need a blockchain to store fungible game assets, such as gold, silver, or unique items with traits like armour.
-Making transactions using ERC-1155 is very cheap, and it is estimated that we can save up to 80\% of transaction fees \cite{EIP1155}.
+ERC-1155 addresses this by allowing a single smart contract to hold multiple token collections, both fungible and non-fungible, within one deployment.
+This is particularly beneficial for games that need a blockchain to store fungible game assets, such as gold or silver, alongside unique items with traits like armour.
+Batch operations in ERC-1155 can reduce transaction fees by up to 80\% compared to equivalent operations across separate ERC-20 and ERC-721 contracts \cite{EIP1155}.
 
 However, what if we want to represent more complex assets, such as tokenized houses or a gaming character, using an inventory of items accumulated over time? It is undoubtedly possible with current ERC-721 and  ERC-1155 standards, but it will introduce complexity to the implementation and decrease composability.
 
@@ -186,16 +178,12 @@ It usually never reaches the point of success or practical application.
 The second case was the most common approach to building a blockchain. Most of the time, projects forked Bitcoin or Ethereum network, tweaked the functionality and modified some underlying code.
 However, it was a usual way that it did not provide the flexibility to update code from the upstream or did not guarantee that these blockchains would be interoperable.
 
-The third case is currently state-of-the-art in building blockchains—Similarly, web frameworks such as NuxtJS abstract all the complex and verbose logic behind the website. Therefore developers can build the business logic that makes a profit.
-In the same way, we can use blockchain frameworks. What does it mean to use the framework?
-We do not need to write our consensus algorithm. We can use the set of predefined lists. Next, we do not need to care about block finalization, communication among nodes and account management.
-Finally, we focus on the business logic and remain compatible with the other blockchains based on the same framework \footnote{https://docs.substrate.io/fundamentals/why-substrate}.
-
-So why should we choose the third option?
+The third case leverages modular blockchain frameworks that abstract networking, consensus, and storage layers, allowing developers to focus on application-specific logic. Analogous to how web frameworks like NuxtJS abstract server configuration and routing, blockchain frameworks provide pre-built, audited implementations of consensus algorithms, peer-to-peer networking, block finalization, and account management.
+The practical advantage is twofold: developers avoid reimplementing security-critical infrastructure, and the resulting chains remain interoperable with other networks built on the same framework \footnote{https://docs.substrate.io/fundamentals/why-substrate}. For this thesis, we adopt the framework-based approach because our contributions lie in the application layer (value assessment and agentic execution), not in consensus design.
 
 
-The focus of this thesis is Substrate, developed by Parity. As could be deducted from the previous lines, Substrate is a framework for building scalable and modular blockchains.
-What is the architecture of the Substrate? From the node perspective, we have two main components\footnote{https://docs.substrate.io/fundamentals/architecture}.
+The focus of this thesis is Substrate, a modular blockchain framework developed by Parity Technologies. It is important to distinguish Substrate from Polkadot: Substrate is the generic framework for building blockchains, while Polkadot is a specific multi-chain network built using Substrate that provides shared security and cross-chain interoperability for its connected parachains \cite{Wood2017}. Any blockchain built with Substrate can operate independently or opt into the Polkadot network.
+From the node perspective, a Substrate-based blockchain has two main components\footnote{https://docs.substrate.io/fundamentals/architecture}:
 
 \begin{itemize}
   \item Node - the part of the code that is running on the network,
@@ -227,9 +215,9 @@ The core set of pallets (around 40 of them) contains critical pallets like accou
     \label{fig:frame-runtime}
 \end{figure}
 
-Since everything is pallet in the Substrate, we can reuse the functionality among them and extend our blockchain with many exotic use cases. To better imagine that, staking in the Polkadot works like a staking pallet tells the balance pallet (that holds money) to lock a particular portion of tokens. Then these tokens accrue more value in staking, and the main advantage is that the staking pallet cares about staking logic and does not need to operate with balances\cite{Burdges2020, Abbas2022}.
+A pallet is a self-contained Rust module that encapsulates a specific piece of blockchain logic (e.g., token balances, staking, governance) along with its own storage, callable functions, and events. Pallets interact through well-defined trait interfaces, enabling composition without tight coupling. For example, the staking pallet in Polkadot delegates balance operations to the balances pallet via a shared \texttt{Currency} trait: it instructs the balances pallet to lock a portion of tokens for staking, while remaining agnostic to how balances are internally managed \cite{Burdges2020, Abbas2022}. This modularity is central to our work, as we implement our contributions (such as the NFTAA primitive) as custom pallets that compose with existing infrastructure.
 
-Each pallet consists of four main parts
+We briefly illustrate the pallet structure below, as our NFTAA implementation (Chapter~\ref{sec:design}) follows the same pattern. Each pallet consists of four main parts
 \begin{enumerate}
     \item Runtime Storage,
     \item Extrinsic,
