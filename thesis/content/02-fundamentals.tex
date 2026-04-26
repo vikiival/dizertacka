@@ -157,115 +157,12 @@ Along with composability, ERC-6551 provides a perfect substrate for creating AI 
 %   \label{table:tokencomparison}
 %   \end{table}
 
-What do smart contracts in Polkadot ecosystems look like?
-
-Similarly to Ethereum, Polkadot has its own virtual machine called PolkaVM. It is a RISC-V-based virtual machine that is able to run Solidy smart contracts. 
-In contrast to Ethereum, multiple smart conctract laguages can compile to RISC-V code and therefore offers higher flexibility compared to EVM.
-However, the ecosystem around Polkadot smart contracts is still evolving. What makes the ecosystem unique is the ability to create custom, extendable logic for the blockchain, which we will cover in the subsection \ref{subsec:pallets}.
-
-\subsection{Substrate and runtime modules} \label{subsec:pallets}
-
-When we want to build our blockchain tailored to our needs, we have three options:
-
-\begin{itemize}
-  \item Start from scratch,
-  \item For the existing blockchain, we can use the existing code and add new functionality.
-  \item Use an abstract framework to build our blockchain.
-\end{itemize}
-
-In the first case, we need to write our code, consensus and run many tests. However, this is an excellent approach to conducting research with a high possibility of inventing something new.
-It usually never reaches the point of success or practical application.
-The second case was the most common approach to building a blockchain. Most of the time, projects forked Bitcoin or Ethereum network, tweaked the functionality and modified some underlying code.
-However, it was a usual way that it did not provide the flexibility to update code from the upstream or did not guarantee that these blockchains would be interoperable.
-
-The third case leverages modular blockchain frameworks that abstract networking, consensus, and storage layers, allowing developers to focus on application-specific logic. Analogous to how web frameworks like NuxtJS abstract server configuration and routing, blockchain frameworks provide pre-built, audited implementations of consensus algorithms, peer-to-peer networking, block finalization, and account management.
-The practical advantage is twofold: developers avoid reimplementing security-critical infrastructure, and the resulting chains remain interoperable with other networks built on the same framework \footnote{https://docs.substrate.io/fundamentals/why-substrate}. For this thesis, we adopt the framework-based approach because our contributions lie in the application layer (value assessment and agentic execution), not in consensus design.
-
-
-The focus of this thesis is Substrate, a modular blockchain framework developed by Parity Technologies. It is important to distinguish Substrate from Polkadot: Substrate is the generic framework for building blockchains, while Polkadot is a specific multi-chain network built using Substrate that provides shared security and cross-chain interoperability for its connected parachains \cite{Wood2017}. Any blockchain built with Substrate can operate independently or opt into the Polkadot network.
-From the node perspective, a Substrate-based blockchain has two main components\footnote{https://docs.substrate.io/fundamentals/architecture}:
-
-\begin{itemize}
-  \item Node - the part of the code that is running on the network,
-  \item Runtime - the part of the code that is running on the node.
-\end{itemize}
-
-As shown in Figure \ref{fig:substrate-arch}, the node part has a couple of responsibilities, such as communication between nodes, allowing clients to fetch data via Remote Procedure Calls (RPC) and storing information of the blockchain.
-The runtime part is the part of the code running on the node. It is responsible for correcting the storage mutation and executing the business logic.
-% Some more sentences + picture
-
-\begin{figure}[!h]
-  \centering
-  \includegraphics[width=\columnwidth]{images/substrate-architecture.png}
-  \caption{Substrate architecture \cite{Johnson2019}}
-  \label{fig:substrate-arch}
-\end{figure}
-
-Thanks to the Substrate framework's modular nature, we can create custom logic for our blockchain.
-As we discussed, the node's runtime is responsible for executing all the business logic \cite{Tabrizi2018}.
-The core of the modular blockchain has a toolset for tweaking the runtime. This tooling is called Framework for Runtime Aggregation of Modularized Entities (FRAME).
-FRAME consists of tools and modules that can be used to build a custom runtime.
-This custom blockchain logic is called the runtime module or pallet in general. If we look at Figure \ref{fig:frame-runtime}, we see that the, by default, Substrate-based blockchain can consist of many pallets.
-The core set of pallets (around 40 of them) contains critical pallets like accounts, staking, governance, and many more.
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=\columnwidth]{images/frame-runtime.png}
-    \caption{Substrate runtime modules}
-    \label{fig:frame-runtime}
-\end{figure}
-
-A pallet is a self-contained Rust module that encapsulates a specific piece of blockchain logic (e.g., token balances, staking, governance) along with its own storage, callable functions, and events. Pallets interact through well-defined trait interfaces, enabling composition without tight coupling. For example, the staking pallet in Polkadot delegates balance operations to the balances pallet via a shared \texttt{Currency} trait: it instructs the balances pallet to lock a portion of tokens for staking, while remaining agnostic to how balances are internally managed \cite{Burdges2020, Abbas2022}. This modularity is central to our work, as we implement our contributions (such as the NFTAA primitive) as custom pallets that compose with existing infrastructure.
-
-We briefly illustrate the pallet structure below, as our NFTAA implementation (Chapter~\ref{sec:design}) follows the same pattern. Each pallet consists of four main parts
-\begin{enumerate}
-    \item Runtime Storage,
-    \item Extrinsic,
-    \item Runtime Events,
-    \item Hooks.
-\end{enumerate}
-
-Same as in the smart contracts, storage can hold variables which are either primitive type, map or double map. As shown in Listing \ref{lst:storage} below, we have a variable named \verb|Something| is a type of unsigned 32-bit integer. To fetch the current value from the chain, Substrate offers a Rust-based macro \verb|#[pallet::getter()]|. Pallet macros help us to hide a ton of complex and boilerplate code from the pallet, so the result is that Rust code is easier to read for smart contract programmers.
-
-\begin{lstlisting}[caption={Defining storage variable in Substrate runtime pallet},label={lst:storage}]
-  #[pallet::storage]
-  #[pallet::getter(fn something)]
-  pub type Something<T> = StorageValue<_, u32>;
-\end{lstlisting}
-
-The second part of the pallets is extrinsic. These functions are called when we make a transaction to the blockchain and are allowed to change the state of the storage.
-As shown in Listing \ref{lst:extrinsic} function \verb|do_something| is changing the value of variable \verb|Something| defined in the storage show in Listing \ref{lst:storage}. At the end of the function, we dispatch an event that tells us the value we stored and our address.
-
-\begin{lstlisting}[caption={Defining extrinsic in Substrate runtime pallet},label={lst:extrinsic}]
-  pub fn do_something(origin: OriginFor<T>, something: u32) -> DispatchResult {
-    let who = ensure_signed(origin)?;
-    <Something<T>>::put(something);
-    Self::deposit_event(Event::SomethingStored(something, who));
-    Ok(())
-  }
-\end{lstlisting}
-
-The last part of the pallets is events. In the same manner, as in smart contracts, we need to emit some status if the call was successful or not. This is done by emitting an enum from \verb|Event| as shown in Listing \ref{lst:events}.
-
-
-\begin{lstlisting}[caption={Defining events in Substrate runtime pallet},label={lst:events}]
-	#[pallet::event]
-	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	pub enum Event<T: Config> {
-		SomethingStored(u32, T::AccountId),
-	}
-\end{lstlisting}
-
-% https://docs.substrate.io/v3/runtime/frame/
-% https://github.com/vikiival/salt-mine
-
-Thanks for the portability and flexibility EVM compatibility for PolkaVM is implemented as a pallet called revive.
+Beyond Ethereum, other blockchain ecosystems have developed their own smart contract environments. For instance, Polkadot supports smart contract execution and additionally allows developers to extend the blockchain runtime itself with custom logic, enabling domain-specific optimizations at the protocol level rather than only at the application layer \cite{Wood2017}.
 
 \subsection{Final thoughts on decentralized ledger technology}
 
 Blockchain opens a new world of possibilities as a decentralized ledger technology.
-Using a piece of code that can be executed without needing a trusted third party, we can build new exciting use cases that can enhance the Internet of Value.
-The emerging sector of decentralized finance allows us to use our money non-stop and without restrictions\cite{Jensen2021, Schar2021, Zetzsche2020}. Moreover, the technology is open to the public and can be used by anyone. So, we can compose tokens into a new product
-that can create additional profit. Unique assets can be tokenized and traded via the Internet, using minimal transaction costs. Companies such as OpenZeppelin are building effective and safe smart contracts.
-Although there are many blockchain technologies, the most popular one is Ethereum. Emerging Substrate framework is a technology that can help us to build a fast, effective and modular blockchain.
+Using deterministic programs that execute without requiring a trusted third party, we can build use cases that enhance the Internet of Value.
+The emerging sector of decentralized finance allows us to use our money non-stop and without restrictions \cite{Jensen2021, Schar2021, Zetzsche2020}. Moreover, the technology is open to the public and can be used by anyone. Tokens can be composed into new financial products, unique assets can be tokenized and traded via the Internet with minimal transaction costs, and open-source libraries such as OpenZeppelin provide audited building blocks for safe smart contract development.
+While many blockchain platforms exist, the architectural principles discussed in this chapter, including immutability, trust minimization, smart contract composability, and token standards, are broadly applicable across ecosystems.
 The next Chapter \ref{sec:analysis} will go through the importance of IoV and the use cases that can be built with it.
