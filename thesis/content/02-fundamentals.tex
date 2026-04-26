@@ -36,7 +36,7 @@ In the area of blockchain, there are many types of consensus algorithms. The mos
 \begin{itemize}
   \item[ ] Proof-of-Work (PoW) - The idea behind the Proof-of-Work is that to make a valid block; we need to use extensive computational resources to find a correct value in the cryptographical puzzle.
   \item[ ] Proof-of-Stake (PoS) - Uses the participants' stake to decide the block's validity.
-  \item[ ] Nominated Proof-of-Stake (NPS) - a Proof-of-Stake with the possibility of other participants nominating their stake to the block validator
+  \item[ ] Nominated Proof-of-Stake (NPoS) - a Proof-of-Stake with the possibility of other participants nominating their stake to the block validator
   Therefore, the block reward is split between the validator and other nominators by the ratio of their stake. The NPOS is used in the Polkadot and their parachains.
 \end{itemize}
 
@@ -129,16 +129,12 @@ Table \ref{table:storages} compares these alternatives along dimensions relevant
   \label{table:storages}
   \end{table}
 
-What if we wanted to create both fungible and non-fungible tokens within one contract? Currently, ERC-20 or ERC-721 requires us to create a new smart contract for each new collection.
-ERC-1155 addresses this by allowing a single smart contract to hold multiple token collections, both fungible and non-fungible, within one deployment.
-This is particularly beneficial for games that need a blockchain to store fungible game assets, such as gold or silver, alongside unique items with traits like armour.
-Batch operations in ERC-1155 can reduce transaction fees by up to 80\% compared to equivalent operations across separate ERC-20 and ERC-721 contracts \cite{EIP1155}.
 
 However, what if we want to represent more complex assets, such as tokenized houses or a gaming character, using an inventory of items accumulated over time? It is undoubtedly possible with current ERC-721 and  ERC-1155 standards, but it will introduce complexity to the implementation and decrease composability.
 
 Proposed ERC-6551 addresses this gap by creating a so-called smart contract wallet for each ERC-721 item in the collection. Thanks to this token-bound account principle, a token can own other fungible and non-fungible tokens, thereby making a composable entity out of a non-fungible token \cite{EIP6551}. Nevertheless, ERC-6551 is not the first attempt to create composable non-fungible tokens. Valastin et al. created a blockchain-based car-sharing platform using ERC-998 to represent the relationship between a car and its key. The problem with this approach is that this logic has to be implemented inside a smart contract \cite{valastin2019, EIP998}. On the other hand, any ERC-721 token could be upgraded to a token-bound account via ERC-6551 without any modifications.
 
-Along with composability, ERC-6551 provides a perfect substrate for creating AI agents, even though there is no unified standard for obtaining information about particular AI agents and their capabilities. The novel standard ERC-8004 fixes this by extending ERC-721 metadata with additional fields regarding agent capabilities, goals, and relevant information. Why is this needed? To create an analogy with traditional NFTs that contain attributes, agents expose endpoints for services. Additionally, ERC-8004 exposes smart contract calls to attach on-chain ratings to the agent\cite{EIP8004}.
+Along with composability, ERC-6551 provides a perfect substrate for creating AI agents, even though there is no unified standard for obtaining information about particular AI agents and their capabilities. The novel standard ERC-8004 fixes this by extending ERC-721 metadata with additional fields regarding agent capabilities, goals, and relevant information. Why is this needed? To create an analogy with traditional NFTs that contain attributes, agents expose endpoints for services. Additionally, ERC-8004 exposes smart contract calls to attach on-chain ratings to the agent \cite{EIP8004}.
 
 % As we look at Table \ref{table:tokencomparison}
 
