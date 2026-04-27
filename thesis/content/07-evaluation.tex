@@ -3,13 +3,14 @@
 
 This chapter evaluates the proposed agentic system for asset valorization within the Internet of Value through two concrete real-world scenarios. Rather than pursuing comprehensive coverage across numerous hypothetical cases, we focus our evaluation on practical applications that directly demonstrate the system's capabilities and validate the core contributions of this work.
 
-The evaluation aims to answer the following questions:
+The research questions stated in Chapter~\ref{sec:aims} (RQ1 on multidimensional valuation, RQ2 on the layered agentic architecture, RQ3 on agent-supported governance) are addressed across the design and evaluation chapters. To make the evaluation itself measurable, we decompose them into four narrower evaluation questions (EQ1--EQ4) that this chapter answers directly:
 \begin{itemize}
-    \item Can the system reliably map user s to correct decisions and actions?
-    \item Does Contextual Asset Value (Availability, Durability, Utility) provide measurable benefit over simpler heuristics?
-    \item What is the computational, latency, and cost overhead of agentic reasoning?
-    \item Is the system robust to missing data, adversarial inputs, and execution failures?
+    \item EQ1: Can the system reliably map user intents to correct decisions and actions?
+    \item EQ2: Does Contextual Asset Value (Availability, Durability, Utility) provide measurable benefit over simpler heuristics?
+    \item EQ3: What is the computational, latency, and cost overhead of agentic reasoning?
+    \item EQ4: Is the system robust to missing data, adversarial inputs, and execution failures?
 \end{itemize}
+The mapping back to the research questions is given in Section~\ref{sec:answering-rqs}: EQ1 and EQ4 inform RQ2, EQ2 informs RQ1, and the treasury part of EQ2 together with EQ3 informs RQ3.
 
 \subsection{Evaluation Methodology}
 
@@ -120,7 +121,7 @@ Gemini 3.0 & 0.20 & 0.25 & 0.55 & 0.25 \\
 \end{tabular}
 \end{table}
 
-Claude Sonnet 4.5 achieves perfect weight assignment across all s (total error = 0.00), while GPT-5.2 demonstrates strong performance (average error = 0.075) and Gemini 3.0 shows more deviation (average error = 0.188).
+Claude Sonnet 4.5 achieves perfect weight assignment across all intents (total error = 0.00), while GPT-5.2 demonstrates strong performance (average error = 0.075) and Gemini 3.0 shows more deviation (average error = 0.188).
 
 Table \ref{tab:nft-scores} presents the A/D/U component scores computed by each model. Expert scores represent the consensus assessment on the 10-point scale.
 
@@ -374,22 +375,25 @@ Prompt injection prevention & 100\% & 100\% & 100\% \\
 \end{table}
 
 \subsection{Answering the Research Questions}
+\label{sec:answering-rqs}
 
-\subsubsection{RQ1: -to-Action Reliability}
+This section relates the four evaluation questions back to the three research questions stated in Chapter~\ref{sec:aims}. RQ1 (multidimensional valuation) is answered by the EQ2 results below. RQ2 (layered agentic architecture) is answered by EQ1 and EQ4. RQ3 (agent-supported on-chain governance) is answered by the treasury part of EQ2 together with EQ3 cost and latency figures.
 
-The evaluation demonstrates that the system can reliably map user s to correct decisions. Claude Sonnet 4.5 achieves 100\% recommendation accuracy across all test cases, with perfect weight assignment and value computation. GPT-5.2 also achieves 100\% recommendation accuracy despite minor deviations in component scores. Gemini 3.0 achieves 80\% accuracy, with the single failure in speculative NFT trading traceable to overconfidence in short-term price momentum.
+\subsubsection{EQ1: Intent-to-Action Reliability}
+
+The evaluation demonstrates that the system can reliably map user intents to correct decisions. Claude Sonnet 4.5 achieves 100\% recommendation accuracy across all test cases, with perfect weight assignment and value computation. GPT-5.2 also achieves 100\% recommendation accuracy despite minor deviations in component scores. Gemini 3.0 achieves 80\% accuracy, with the single failure in speculative NFT trading traceable to overconfidence in short-term price momentum.
 
 The high confidence calibration scores (0.87-0.96) indicate that model-stated confidence levels correlate well with actual accuracy, enabling users to appropriately trust or question recommendations.
 
-\subsubsection{RQ2: Value Framework Effectiveness}
+\subsubsection{EQ2: Value Framework Effectiveness}
 
-The A/D/U framework proves effective in both NFT and governance contexts. Expert evaluators confirmed that the three-dimensional decomposition captures relevant factors for decision-making. The framework's adaptability through -based weighting successfully addressed diverse user goals, from long-term holding to functional utility prioritization.
+The A/D/U framework proves effective in both NFT and governance contexts. Expert evaluators confirmed that the three-dimensional decomposition captures relevant factors for decision-making. The framework's adaptability through intent-based weighting successfully addressed diverse user goals, from long-term holding to functional utility prioritization.
 
 Claude Sonnet 4.5's perfect alignment with expert assessments (MAE = 0.00 across both scenarios) validates that the framework's theoretical structure translates into practical discriminative power. Even the weaker performer (Gemini 3.0 with MAE = 0.915) still demonstrates understanding of the framework's logic, though with less precise calibration.
 
 The treasury scenario particularly validates framework generalizability: the same A/D/U structure successfully evaluated proposals (non-asset entities) by adapting component definitions while maintaining the fundamental tripartite structure.
 
-\subsubsection{RQ3: Computational Overhead}
+\subsubsection{EQ3: Computational Overhead}
 
 All three models demonstrate acceptable computational overhead:
 \begin{itemize}
@@ -401,7 +405,7 @@ The cost-benefit analysis strongly favors automated evaluation at scale. Break-e
 
 Claude Sonnet 4.5 offers the best accuracy-to-cost ratio: while 22\% more expensive than Gemini 3.0 per evaluation, its perfect accuracy eliminates costly decision errors. A single avoided bad NFT purchase (prevented by accurate valuation) would cover the cost difference for thousands of evaluations.
 
-\subsubsection{RQ4: Robustness and Failure Handling}
+\subsubsection{EQ4: Robustness and Failure Handling}
 
 The system demonstrates strong robustness across multiple dimensions:
 
@@ -431,7 +435,7 @@ This evaluation validates the core claims of this thesis through concrete, repli
 
 \beginc{enumerate}
     \item The A/D/U value framework successfully translates theoretical concepts into practical assessment capability, achieving expert-level accuracy when implemented with Claude Sonnet 4.5
-    \item -based weighting enables a single framework to serve diverse user goals, from speculation to long-term holding to functional use
+    \item intent-based weighting enables a single framework to serve diverse user goals, from speculation to long-term holding to functional use
     \item Computational efficiency makes the approach economically viable for high-volume applications, with 98-99\% cost reduction vs. manual evaluation
     \item The architecture exhibits appropriate robustness to missing data and adversarial inputs, though model selection significantly impacts reliability
 \end{enumerate}
