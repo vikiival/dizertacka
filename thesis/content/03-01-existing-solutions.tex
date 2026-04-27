@@ -1,9 +1,10 @@
 \subsection{Related Work}
 \label{sec:relatedwork}
 
-This section covers projects that we consider state-of-the-art in the context of
-the Internet of Value. We discuss their goals, strengths, and weaknesses. We can
-get inspiration from the good parts and eliminate the parts we consider weak spots.
+This section looks at projects we consider state-of-the-art in the context of
+the Internet of Value. For each platform, we point out the limits that make it
+unsuitable for the research problem, and we use these limits to back the gap
+claims behind the research questions in Chapter~\ref{sec:aims}.
 
 This section examines cutting-edge projects at the intersection of artificial intelligence
 and blockchain technology, representing the evolving paradigm of the Internet of
@@ -216,10 +217,13 @@ shows how decentralized, multi-agent systems can coordinate complex tasks with
 enhanced security and reliability. Griffain illustrates how natural language interfaces
 can make blockchain complexity accessible to mainstream users.
 
-Going forward, agentic systems are the natural step forward in interacting with
-participants in the Internet of Value. In the next chapter, we will define a new
-architecture of AI agents that can incorporate the ownership of Virtuals, the technical
-robustness of Autonolas, and the accessibility of Griffain.
+None of the surveyed platforms addresses all three gaps identified in this thesis:
+multi-dimensional value assessment, agent-oriented on-chain primitives, and
+auditable human-in-the-loop governance support. Virtuals leaves value assessment
+to market dynamics, Autonolas does not provide an account-level primitive for
+agent delegation, and Griffain trades autonomy for usability. Chapter~\ref{sec:design}
+proposes an architecture designed to test whether these gaps can be closed
+together rather than picked off one at a time.
 
 Integrating AI agents with blockchain networks opens new frontiers for the
 Internet of Value, enabling autonomous value creation, novel ownership models, enhanced
