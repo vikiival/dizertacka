@@ -63,9 +63,7 @@ Therefore, having this ability to read the data from the blockchain, we can acce
 \subsection{Smart contracts}
 
 A smart contract is a deterministic program deployed on a blockchain that automatically enforces predefined rules when triggered by a transaction \cite{szabo1997contracts}. Unlike traditional legal contracts, which require trusted intermediaries for enforcement, smart contracts derive their guarantees from the underlying consensus mechanism: once deployed, their execution is verified by all participating nodes, making the outcome tamper-proof and publicly auditable \cite{DeFilippi2018}.
-How do smart contracts work? The smart contract is a program running on blockchain written in Turing-complete\footnote{In the context of EVM, Bitcoin Script is Turing-incomplete} programming language \cite{szabo1997contracts}.
-To deploy a smart contract, we need to create a smart contract code, compile it into the binary code and then send it to the blockchain as a transaction.
-Once the contract is deployed, it gets a unique address that is used to access the contract and the storage where we can store the data.
+Smart contracts are typically written in a Turing-complete language\footnote{In the context of EVM, Bitcoin Script is Turing-incomplete}, compiled to bytecode, and addressed via a unique on-chain identifier once deployed.
 By default, the smart contract code is immutable. However, a proxy contract can be used to change the code of the contract \cite{wood2014ethereum}.
 
 The first blockchain that brought the concept of smart contracts is Ethereum. In high overview, the Ethereum blockchain has an Ethereum Virtual Machine (EVM) that is used to run smart contracts.
@@ -158,7 +156,7 @@ Beyond Ethereum, other blockchain ecosystems have developed their own smart cont
 \subsection{Final thoughts on decentralized ledger technology}
 
 Blockchain opens a new world of possibilities as a decentralized ledger technology.
-Using deterministic programs that execute without requiring a trusted third party, we can build use cases that enhance the Internet of Value.
+Deterministic programs that execute without a trusted third party give the Internet of Value its settlement layer. Whether that layer is enough on its own is the question Chapter~\ref{sec:analysis} takes up.
 The emerging sector of decentralized finance allows us to use our money non-stop and without restrictions \cite{Jensen2021, Schar2021, Zetzsche2020}. Moreover, the technology is open to the public and can be used by anyone. Tokens can be composed into new financial products, unique assets can be tokenized and traded via the Internet with minimal transaction costs, and open-source libraries such as OpenZeppelin provide audited building blocks for safe smart contract development.
 While many blockchain platforms exist, the architectural principles discussed in this chapter, including immutability, trust minimization, smart contract composability, and token standards, are broadly applicable across ecosystems.
-The next Chapter \ref{sec:analysis} will go through the importance of IoV and the use cases that can be built with it.
+These primitives settle transactions. They do not assess value, carry agent policy, or scale human oversight. Chapter~\ref{sec:analysis} shows why that matters and where current Internet of Value platforms break.

@@ -199,15 +199,18 @@ This approach excels in creating economically aligned communities around AI
 development but faces challenges in governance complexity and regulatory
 uncertainty regarding tokenized AI assets.
 
-\textbf{Autonolas} offers the most mature and technically robust solution with its
-multi-agent architecture and cross-chain capabilities. Its emphasis on fault
-tolerance and composability makes it suitable for mission-critical applications.
-However, its technical complexity creates a higher barrier to entry for non-specialists.
+\textbf{Autonolas} provides the most developed fault-tolerance model among the
+surveyed systems, with a multi-agent architecture and cross-chain coordination
+suited to mission-critical workloads. It does not, however, offer an account-level
+primitive for agent delegation. Agents act through standard service contracts
+rather than through accounts that carry their own policy, which leaves the
+delegation gap identified in Chapter~\ref{sec:analysis} open.
 
-\textbf{Griffain} prioritizes user experience and practical utility through its natural
-language interface and Solana's high-performance infrastructure. While offering
-the most accessible entry point for mainstream users, it makes trade-offs in agent
-autonomy and decentralization to achieve its simplicity and safety guarantees.
+\textbf{Griffain} prioritises user experience through a natural-language interface
+on Solana. The trade-off is that decision-making is centralised in the platform
+operator, and value assessment is reduced to direct execution with no support
+for multi-dimensional evaluation or auditable human-in-the-loop voting. Griffain
+therefore leaves the value-assessment and governance-support gaps unaddressed.
 
 How are these platforms connected to the Internet of Value? That is an excellent
 and valid question. Each of these platforms represents different visions for the
@@ -225,10 +228,7 @@ agent delegation, and Griffain trades autonomy for usability. Chapter~\ref{sec:d
 proposes an architecture designed to test whether these gaps can be closed
 together rather than picked off one at a time.
 
-Integrating AI agents with blockchain networks opens new frontiers for the
-Internet of Value, enabling autonomous value creation, novel ownership models, enhanced
-coordination mechanisms, and personalized value management. However, significant
-challenges remain in balancing autonomy with safety, addressing regulatory concerns,
-and ensuring reliable alignment between off-chain intelligence and on-chain
-execution. The following chapter will explore our architectural approach to these
-challenges, building on insights from these pioneering projects.
+Open challenges in balancing autonomy with safety, in regulatory treatment of
+tokenised agents, and in keeping off-chain reasoning aligned with on-chain
+execution remain across all three platforms. Chapter~\ref{sec:design} returns
+to these challenges in the context of the gaps identified above.
