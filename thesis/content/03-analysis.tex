@@ -2,7 +2,8 @@
 \section{Internet of Value and Blockchain}
 \label{sec:analysis}
 
-When the Internet was created, it had a simple goal: to enable people to communicate via computer and transfer data via the World Wide Web.
+When the Internet was created, it had a simple goal: connect computers so they could share data reliably, even if parts of the network failed.
+As the technology matured the goal pivoted to enable people to communicate via computer and transfer data via the World Wide Web.
 Anyone could spin up a simple Apache server at home and distribute HTML files over the web using the Hypertext Transfer Protocol (HTTP).
 However, most pages were just static, stateless content. For most internet users, it was an unreal experience because they could enjoy features such as email and access to the latest news without waiting until the next day for a printed paper.
 In 1996, when CSS1.0 was introduced in browsers, we could customize the web page's design to our preferences \cite{Choudhury2014}.
@@ -15,10 +16,10 @@ A massive number of people joined in the era of Web 2.0. Although it did not bri
 Web pages become more interactive thanks to the JavaScript language and frameworks such as jQuery. Web 2 mainly uses HTML5 and CSS3, and the primary fundamental is that the web has become a social and interconnected place.
 What made Web 2.0 cool was the ability for anyone to create and share content online. This content could range from a blog post on WordPress to a YouTube video \cite{Web1, Krumm2008, Chakravorty2017}.
 With the first release of the Facebook platform in 2004, the web became a place where spreading information is easier and faster.
-These allowed non-technical people to create blogs and websites.
+These platforms allowed non-technical people to create blogs and websites.
 
-Additionally, the Internet allowed the creation of sharing economy. Instead of owning a car, we can rent a car and pay just for the time we use it \cite{Parker2016}.
-As it is known, most vehicles are used only 4\% of the day. That means that the car is underutilized a lot. A similar situation is happening with housing properties.
+Additionally, the Internet allowed the creation of shared economy. Instead of owning a car, we can rent a car and pay just for the time we use it \cite{Parker2016}.
+As it is known, most vehicles are used only 5\% of the day \cite{Keith2022}. That means that the car is underutilized a lot. A similar situation is happening with housing properties.
 Before the Internet, we rented a house or flat to friends or family members. The Internet allowed us to share our assets with strangers and lowered the transaction cost.
 Platforms like Airbnb were created to make the renting process more accessible. We do not need to limit the gig economy only to asset sharing \cite{Cupi2022, Sundararajan2016}.
 TaskRabbit allowed people to use their time to do tasks and earn money \cite{Prassl2015}.
@@ -26,28 +27,13 @@ The problem is that people participating in the gig economy must earn a reputati
 For example, we can have an imposing reputation score in TaskRabbit, but if we want to become Airbnb hosts, we must build our reputation again \cite{Schor2016}.
 This means we are looking for a new paradigm to solve this problem.
 
-In 2008 when Satoshi Nakamoto released the paper "Bitcoin: A Peer-to-Peer Electronic Cash System," he said:
-"The Bitcoin protocol is a peer-to-peer payment network that enables instant payments to anyone, anywhere globally."
-Additionally, as a result of his idea, Bitcoin prevents double-spending. How was it possible?
-Because every bitcoin is just a result of unspent transaction output (UTXO), using the same UTXO twice is not possible.
-It is then verifiable by other participants in the network to check if the transactions in the block are valid \cite{Nakamoto}.
-
-Based on the brilliant idea of Satoshi Nakamoto, new blockchain systems were created, such as Ethereum.
-Although Ethereum differs from Bitcoin, its main advantage is the ability to create trustless contracts (business logic) across the network \cite{wood2014ethereum, Buterin2014}.
-Thanks to trustless code execution, the blockchain can be used for use cases where we previously needed to put trust in a third party\ cite{Luu2016}.
-The main advantage of the blockchain is that it is a distributed system with append-only immutable storage.
-Furthermore, it allows us to develop new, advanced protocols, such as Polkadot \cite{Wood2017}.
-
-We have seen a rise in the popularity of the decentralized finance sector.
-Many successful projects replicated financial fundamentals in the context of the blockchain; if not, we can develop new and effective ones.
-Traditional banking products such as lending, issuing, and trading shares and bonds are based on the same principles.
-From Compound \cite{papangelou2023exploring}, AAVE \cite{gambacorta2024defi, frangella2022aave}, Uniswap \cite{Adams2021}, and other projects, we can see that what used to be a primary domain of Wall Street is now a possibility in the decentralized finance sector \cite{Angeris2020, Kim2022}.
+As described in Chapter~\ref{sec:blockchain}, blockchain technology provides the foundational infrastructure for decentralized, trustless value transfer through consensus-driven state transitions \cite{Nakamoto, wood2014ethereum}. Building on these primitives, the decentralized finance (DeFi) sector has demonstrated that traditional financial products, such as lending (Compound \cite{papangelou2023exploring}, AAVE \cite{gambacorta2024defi, frangella2022aave}), decentralized exchange (Uniswap \cite{Adams2021}), and asset management, can be replicated in a permissionless, composable manner \cite{Angeris2020, Kim2022}.
 
 Without any doubt, the emergence of blockchain technology has enabled a fundamental shift from an Internet of Information to an Internet of Value. While the former revolutionized how we share and access data, the latter promises
 to transform how we transfer, store, and exchange assets of any kind.
-However, though the term Internet of Value is a highly abstract term, it is often mistakenly used interchangeably with concepts such as "Web3," "decentralized finance," or simply "blockchain applications."
+However, the term Internet of Value is often conflated with related but distinct concepts. ``Web3'' broadly refers to the decentralized web stack (identity, storage, computation), while ``decentralized finance'' denotes the specific application of blockchain to financial instruments. The Internet of Value is a broader paradigm: it encompasses not only financial transactions but any form of value transfer, including non-monetary assets such as reputation, access rights, intellectual property, and governance participation.
 
-Lohmer et al.\cite{Lohmer2024} provide one of the most comprehensive definitions of the Internet of Value, describing it as follows:
+Lohmer et al. \cite{Lohmer2024} provide one of the most comprehensive definitions of the Internet of Value, describing it as follows:
 
 \begin{quote}
 The Internet of Value enables the direct transfer of assets of any kind as well as processing and settlement of business transactions based on blockchain technology in conjunction with digital platforms, tokens, smart contracts, and other technologies such as the Internet of Things and artificial intelligence. Its principles are to create a system compliant with data protection values, equal and fair access for all participants, effective representation of digital and physical assets, and disintermediation for direct peer-to-peer communication and the exchange of values. These technologies and principles facilitate open content and value sharing, transparency, sustainable behavior, and self-sovereign digital identities \cite{Lohmer2024}.
@@ -56,9 +42,9 @@ The Internet of Value enables the direct transfer of assets of any kind as well 
 From the definition, we can derive three essential elements that differentiate the Internet of Value from previous paradigms.
 First, we treat blockchain as the foundation of the IoV rather than just a technology. To enable secure value transfer, we must ensure orchestration among multiple participants in the network, which leads us to the second element: establishing the Internet of Value as a fair and autonomous socio-economic framework rather than merely a technical infrastructure.
 
-Third, and most importantly for this work, the definition implies that value itself is not a singular, objective quantity but a multi-dimensional construct. Through expert interviews and systematic analysis, Lohmer et al.\cite{Lohmer2024} later sumarized this understanding to propose that value in the Internet of Value can be defined using three distinct dimensions: Economic worth, Utility or access rights, and Ethical and sustainability contributions.
+Third, and most importantly for this work, the definition implies that value itself is not a singular, objective quantity but a multi-dimensional construct. Through expert interviews and systematic analysis, Lohmer et al. \cite{Lohmer2024} later summarized this understanding to propose that value in the Internet of Value can be defined using three distinct dimensions: Economic worth, Utility or access rights, and Ethical and sustainability contributions.
 
-What does it imply? It reveals that asset valuation cannot be based solely on price discovery. For instance non-fungible tokens can have low floor market price, but on the other hand they can posses high utility for the specific community \cite{Ante2021, Dowling2022, Nadini2021, Kong2021}. Similarly, a fungible governance tokens can be cheap to obtain, however still ethically contribute to on-chain decision making process. Traditional financial valuation frameworks, which prioritize market price and liquidity, fail to capture this complexity.
+What does this imply? It reveals that asset valuation cannot be based solely on price discovery. For instance, non-fungible tokens can have a low floor market price but possess high utility for a specific community \cite{Ante2021, Dowling2022, Nadini2021, Kong2021}. Similarly, fungible governance tokens can be cheap to obtain yet contribute meaningfully to on-chain decision-making processes. Traditional financial valuation frameworks, which prioritize market price and liquidity, fail to capture this complexity. The absence of such a multi-dimensional valuation framework, one that captures utility and contribution alongside price, is the first gap this thesis identifies and addresses in Chapter~\ref{sec:aims}.
 
 What role does the blockchain play in autonomous agents?
 Blockchain provides the infrastructure for storing and sharing data without the need for trusted intermediaries. Through tokenization, any asset can be represented on-chain with verifiable ownership and transferability \cite{Jeon2022}. This eliminates the risks inherent in centralized storage: when a company shuts down its servers, the assets stored there become inaccessible or worthless without further use \cite{Duan2021}.
@@ -70,17 +56,12 @@ Furthermore, as the Internet of Value expands across multiple blockchains and in
 shapes from tokenized real-world assets and generative algorithms to blockchain-native protocols and services \cite{Bambridge2022}, and to intellectual property rights. This challenge extends to the funding of open-source projects and public goods \cite{Kukelka2022public, Calhoun2006, Ostrom1990}, where manual assessment for adequate funding becomes infeasible.
 On the one hand, by focusing on primary open-source projects, we prevent double-spending during development time \cite{Sopko2022}. Moreover, having the possibility that multiple parties are contributing to the same codebase, the project is more stable, less prone to bugs, and more secure. Open-source code creates value. Additionally, non-technical people can contribute to the project by providing their ideas and suggestions \cite{Alves2022, Yin2021}.
 
-Projects may seek funding through quadratic funding models or on-chain treasury proposals. In both cases, evaluating proposals requires processing extensive on-chain and off-chain data, a task that exceeds the capacity of human evaluators. Using the quadratic funding model, we are giving the project more value and having skin in the game \cite{Buterin2018QF, Buterin2019}. Other companies can then match the project's funding and move towards a greater goal \cite{Pasquini2021, Buterin2018, Freitas2021, Weyl2018}. The second path is to create a treasury proposal for on-chain voting. If the proposal passes, the project will get funding from the treasury \cite{Rodrigues2022, Valastin2024proto}. Therefore, we iterate on the idea of autonomous agents that analyze proposals and vote according to predefined rules. Human evaluators cannot process the volume of on-chain and off-chain data required to produce unbiased voting opinions.
+Projects may seek funding through quadratic funding models or on-chain treasury proposals. In both cases, evaluating proposals requires processing extensive on-chain and off-chain data, which makes manual evaluation costly and inconsistent at scale; agents are therefore better positioned as decision support that retrieves evidence and produces auditable recommendations for human voters rather than as autonomous deciders. Using the quadratic funding model, we are giving the project more value and having skin in the game \cite{Buterin2018QF, Buterin2019}. Other companies can then match the project's funding and move towards a greater goal \cite{Pasquini2021, Buterin2018, Freitas2021, Weyl2018}. The second path is to create a treasury proposal for on-chain voting. If the proposal passes, the project will get funding from the treasury \cite{Rodrigues2022, Valastin2024proto}. Therefore, we iterate on the idea of autonomous agents that analyze proposals and vote according to predefined rules. As treasury ecosystems scale, the volume of proposals grows beyond the capacity of human evaluation: for example, Polkadot's OpenGov system processes hundreds of proposals per year, each requiring analysis of on-chain spending history, team track records, deliverable feasibility, and alignment with ecosystem priorities \cite{Valastin2024proto}. Individual voters lack the time and tooling to perform this analysis consistently, leading to voter apathy, low participation rates, and decisions driven by social influence rather than objective assessment.
 Agentic systems can serve as the cognitive layer that interprets the goals, evaluates information across multiple dimensions, and generates recommendations \cite{Wang2024survey}. In contrast, blockchain serves as the settlement layer that executes approved actions in a transparent and immutable manner. It showcases a perfect collaboration of both technologies: AI provides intelligence and flexibility, while blockchain provides trust and finality.
 
 However, several critical gaps prevent this synthesis from being realized in practice. First, despite growing literature on blockchain-based asset valorization \cite{DeLope2021}, no standardized framework exists for multi-dimensional, goal-oriented asset valuation.
-Moreover, to hold balance on the blockchain with an account model, we need to either use externally owned accounts (EOAs) or smart contract wallets. These models, however, lack the required abstractions for autonomous agents. We need specialized primitives for policy enforcement, risk isolation, and auditable decision-making that are still compatible with existing DeFii protocols. Current account standards do not provide these capabilities, limiting the types of autonomous operations that can be safely delegated to agents.
+Moreover, current account models do not cover the needs of autonomous agents. Externally owned accounts bind authority to a single key. Smart contract wallets, including recent account-abstraction proposals such as EIP-4337 \cite{Buterin2021, Wang2023, Duan2024}, focus on flexible authentication and gas sponsorship rather than agent-oriented delegation. None of these provides primitives for policy enforcement, risk isolation, and auditable decision-making that stay compatible with existing DeFi protocols, which limits what can safely be delegated to agents.
 Last but not least, there is no established methodology for translating natural-language intent into verifiable on-chain actions while maintaining user sovereignty and transparency, with respect to the fact that user has to be aware of ongoing actions \cite{Amershi2019, Shneiderman2022, Wang2021}.
 
 
-The main topics are three research questions:
-\begin{enumerate}
-   \item Propose the new architecture for an agetic system in the context of blockchain and the Internet of Value.
-   \item How can we and AI agents effectively operate with assets in the field of IoV?
-   \item Is it possible to use an AI agent to analyze the value of treasury proposals in the context of on-chain governance?
-\end{enumerate}
+The identified gaps, namely the absence of a multidimensional value framework, the lack of agent-compatible on-chain primitives, and the scalability limitations of manual governance evaluation, motivate the research questions formulated in Chapter~\ref{sec:aims}.
