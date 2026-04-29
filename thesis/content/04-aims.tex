@@ -21,12 +21,12 @@ These three questions correspond to three contribution pillars. RQ1 asks for a f
 
 The thesis does not claim a universal theory of value, that the underlying language model is correct, that experts are absolute ground truth, or that agents should autonomously control user assets. It claims that stated intent can be formalised as a projection over heterogeneous evidence spaces, that intent-instantiated Availability, Durability, and Utility provide a practical decomposition of value across heterogeneous Internet of Value asset classes, that valuation traces can make agentic decision support auditable, that confident \textit{proceed} decisions can be gated by evidence completeness, and that asset-moving authorisation can be gated by trace validity, human approval, and account-level policy. To make the formal scope of this claim precise, the thesis targets two safety properties. \emph{Evidence-Completeness Safety} states that a confident \textit{proceed} decision implies the presence and provenance of the intent-required evidence. \emph{Trace-Gated Authorisation} states that authorisation of a value-relevant transaction implies the existence of a valid trace, complete intent-required evidence, a \textit{proceed} decision, a transaction that matches the trace, and a permitting policy. Throughout the thesis we use \emph{auditable}, \emph{evidence-based}, \emph{intent-conditioned}, \emph{traceable}, \emph{attributable}, and \emph{policy-constrained} in preference to the term \emph{objective}, which we treat as misleading in this setting.
 
-Along with the main research questions, we have identified specific challenges that correspond to each research area:
+Along with the main research questions, we have identified specific challenges that are worth tackling:
 
 \begin{enumerate}
+  \item Current blockchain systems lack standard for integrating autonomous agents with on-chain execution.
   \item There is no framework that can objectively evaluate heterogeneous asset types while adapting to diverse user intents.
-  \item Current blockchain systems lack a standard architecture for integrating autonomous agents with on-chain execution in a modular, extensible manner.
-  \item Manual evaluation of on-chain treasury proposals is biased and does not scale, resulting in inconsistent decision-making.
+  \item Manual evaluation of on-chain treasuries proposal evaluation, is biased which results in inconsistent decision-making.
 \end{enumerate}
 
 The following chapter develops the design that addresses these challenges. Chapter \ref{sec:design} formalises ICVP, presents the agentic method that carries it out, and reframes NFTAA as the account-level enforcement layer that makes trace-gated authorisation concrete. Chapter \ref{sec:evaluation} reports the twelve-task evaluation against the two reduced baselines and the three expert reference judgements.
