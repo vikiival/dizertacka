@@ -1,234 +1,291 @@
 \subsection{Related Work}
 \label{sec:relatedwork}
 
-This section looks at projects we consider state-of-the-art in the context of
-the Internet of Value. For each platform, we point out the limits that make it
-unsuitable for the research problem, and we use these limits to back the gap
-claims behind the research questions in Chapter~\ref{sec:aims}.
+This section positions the thesis against current infrastructure for
+intent-based execution, account delegation, agent payments, agent identity,
+wallet policy enforcement, and blockchain agent platforms. The purpose is not
+to rank these systems, but to identify the part of the state of the art that
+they address and the part that remains open for Intent-Conditioned Value
+Projection (ICVP). The central distinction is that most existing systems answer
+questions about how an action can be expressed, authorised, routed, paid for, or
+executed. ICVP addresses the earlier decision question: what should count as
+value for a given asset or proposal under a stated intent, which evidence is
+required for that interpretation, and how the resulting decision can be audited
+before a value-relevant transaction is prepared.
 
-This section examines cutting-edge projects at the intersection of artificial intelligence
-and blockchain technology, representing the evolving paradigm of the Internet of
-Value. We analyze three pioneering platforms implementing AI agents on blockchain
-networks: Virtuals Protocol, Autonolas, and Griffain. Each project demonstrates unique
-approaches to autonomous on-chain entities, offering valuable insights into
-architectural designs, governance models, and economic mechanisms. By understanding
-their strengths and limitations, we can identify principles for developing next-generation
-systems that maximize value creation while addressing current challenges. Before
-diving into the specific projects, why do we need AI agents on the blockchain? The
-answer lies in the need for autonomous systems that can operate with minimal human
-intervention, enabling complex interactions with digital assets and smart
-contracts. These agents can automate tasks, manage resources, and execute transactions
-based on predefined rules or learned behaviors, thus enhancing the efficiency
-and scalability of blockchain ecosystems. These systems typically employ a hybrid
-architecture: AI decision-making occurs off-chain while execution happens on-chain
-through transactions. This architectural paradigm has manifested in two primary approaches:
+\subsubsection{Intent Protocols and Solver Systems}
 
-\begin{enumerate}
-	\item \textbf{On-Chain AI Agents}: Entities represented on the blockchain as smart
-		contract accounts or NFTs with associated wallets. These agents have an on-chain
-		identity and can own assets directly, execute transactions, and participate
-		in protocols autonomously. They might be governed through tokenization or DAOs \cite{Hassan2021}.
+Intent-centric protocols replace low-level transaction construction with a
+higher-level statement of desired outcome. In ERC-7683-style settlement, or in
+solver-mediated systems such as CoW Protocol, UniswapX, and Across-style
+cross-chain intents, the user expresses an outcome and specialised solvers
+compete or coordinate to satisfy it.
+% TODO citation needed: ERC-7683 cross-chain intents.
+% TODO citation needed: CoW Protocol solver-based intents.
+% TODO citation needed: UniswapX intent-based routing.
+% TODO citation needed: Across cross-chain intents.
 
-	\item \textbf{Off-Chain AI Agents with Transaction Authority}: Off-chain AI systems
-		that have delegated authority to sign blockchain transactions. Recent
-		account abstraction developments \cite{EIP7702, Buterin2021, Duan2024} enable users to safely
-		delegate limited transaction powers to AI systems without exposing private
-		keys.
-\end{enumerate}
+These systems are directly relevant because they show that user intent can be a
+first-class input to blockchain execution. Their intent, however, is normally an
+execution constraint: swap token $x$ for at least amount $y$, bridge funds to a
+target chain, fill an order within a deadline, or satisfy a route under price
+and slippage limits. The solver problem is therefore to find a valid execution
+path for a specified outcome. It does not usually formalise how the outcome was
+selected as valuable in the first place. For example, a solver can optimise a
+swap route, but it does not decide whether holding, selling, collateralising, or
+using the asset is the right interpretation of value under the user's stated
+goal.
 
-The projects analyzed below implement variations of these models, each with distinct
-technical approaches and target use cases.
+Relative to ICVP, intent protocols leave open the value-interpretation layer.
+They can execute a chosen action efficiently, but they do not define an
+intent-conditioned projection over evidence, do not instantiate Availability,
+Durability, and Utility differently for each intent, and do not produce a
+valuation trace explaining why the action is defensible under that intent.
 
-\subsubsection{Virtuals Protocol (Base L2, Ethereum)}
+\subsubsection{Account Abstraction and Delegated Execution}
+
+Account abstraction generalises the account model so that authentication,
+authorisation, fee payment, batching, and recovery can be programmed rather than
+hard-coded into externally owned accounts. EIP-4337 introduces smart-account
+execution through user operations and bundlers \cite{Buterin2021}. EIP-7702
+allows an externally owned account to temporarily behave as if it had account
+code for a transaction \cite{EIP7702}. Broader surveys of account abstraction
+describe this movement as a shift from key-based accounts toward programmable
+account semantics \cite{Wang2023, Duan2024}. Session-permission proposals such
+as ERC-7715 extend this direction by letting users grant limited capabilities to
+applications or agents.
+% TODO citation needed: ERC-7715 session permissions.
+
+This line of work is important for the thesis because it provides the technical
+substrate for constrained delegation. A user can give an agent a session key, a
+spending cap, a list of permitted contracts, or a limited execution window
+without handing over the user's private key. These mechanisms improve wallet
+safety and make agent-assisted execution more practical.
+
+The limitation is that programmable authorisation is not the same as
+intent-conditioned valuation. Account-abstraction mechanisms can check whether a
+transaction is permitted under a policy, but they do not specify what evidence
+the agent should have gathered before proposing that transaction. They also do
+not require a valuation trace that records the stated intent, the evidence used,
+the intent-specific meaning of each valuation dimension, the decision label, and
+the human approval step. In the terminology of this thesis, account abstraction
+can help enforce part of Trace-Gated Authorisation, but it does not by itself
+provide Evidence-Completeness Safety or the projection $P_i$ and instantiation
+$\Phi_i$ used by ICVP.
+
+\subsubsection{Agent Payments and Agent Wallets}
+
+Recent agent-payment systems focus on enabling software agents to pay for APIs,
+services, and on-chain actions. Examples include x402-style HTTP payment flows,
+AP2-style agent payment protocols, and developer toolkits such as Coinbase
+AgentKit that combine wallet operations with agentic application logic.
+% TODO citation needed: x402 agent or HTTP payment protocol.
+% TODO citation needed: AP2 agent payment protocol.
+% TODO citation needed: Coinbase AgentKit documentation.
+
+These systems address a practical bottleneck: agents need payment rails and
+wallet interfaces if they are to act in open digital markets. They can let an
+agent purchase data, pay for a service, interact with a smart contract, or
+prepare a wallet operation on behalf of a user. This makes them complementary to
+the execution side of the architecture proposed in Chapter~\ref{sec:design}.
+
+Their scope is nevertheless different from ICVP. Payment rails and agent-wallet
+SDKs define how an agent can hold, request, or transfer value. They do not define
+what value means under a particular intent, which evidence is necessary before a
+payment or transfer is recommended, or how a human reviewer can inspect a
+structured valuation trace before authorising the action. They therefore
+support machine payments and agent action, but not the contextual decision model
+that this thesis studies.
+
+\subsubsection{Agent Identity and Reputation}
+
+Agent identity standards aim to make agents discoverable, describable, and
+assessable as network participants. ERC-8004, for example, extends the NFT-based
+agent model with metadata about agent capabilities and on-chain mechanisms for
+ratings or reputation \cite{EIP8004}. This direction is relevant because an
+agentic Internet of Value requires some way to know which agent acted, what it
+claimed to be able to do, and how other participants assessed it.
+
+Identity and reputation, however, answer a different question from ICVP. They
+help identify or validate an agent, but they do not decide how a particular NFT,
+productive asset, or treasury proposal should be valued under a specific user or
+governance intent. A reputable agent may still use the wrong evidence, collapse
+the decision to market price, or prepare a transaction without exposing a
+complete trace. ERC-8004-style identity can therefore complement NFTAA-level
+authorisation, but it does not replace the evidence projection and valuation
+trace required by ICVP.
+
+\subsubsection{Policy-Based Wallets and Custody}
+
+Smart-contract wallets and custody systems provide policy enforcement for asset
+movement. Safe modules and guards can restrict calls, require multisig approval,
+or add custom checks before execution \cite{Liochon2023}. Institutional custody
+systems such as Turnkey- or Fireblocks-style policy engines similarly enforce
+approval workflows, spending limits, role-based controls, and destination
+constraints.
+% TODO citation needed: Turnkey policy engine.
+% TODO citation needed: Fireblocks policy engine.
+
+This work is close to the enforcement side of the thesis. It shows that
+transaction authorisation can be constrained by explicit policy rather than by a
+single signing key. It also shows why policy engines are necessary when agents
+prepare transactions that move assets or vote with governance rights.
+
+The gap is that policy enforcement usually evaluates the transaction envelope:
+who may sign, which destination is allowed, what amount may move, which contract
+may be called, and which approvals are required. It does not usually evaluate
+whether the transaction is supported by complete intent-required evidence, an
+intent-instantiated $A/D/U$ analysis, and a human-approved valuation trace. In
+this thesis, NFTAA uses policy as an enforcement layer, but the policy is
+trace-gated: a value-relevant action should be authorised only when it is linked
+to a valid trace, complete projected evidence, a \textit{proceed} decision, and
+human approval.
+
+\subsubsection{Treasury Governance Tooling}
+
+On-chain treasury governance has its own tooling stack. Tally and Boardroom
+aggregate proposals across DAO frameworks and provide voting interfaces.
+Snapshot runs off-chain signalling votes that are later settled on-chain.
+Polkassembly and Subsquare carry proposal discussion, sentiment, and voter
+context for Polkadot OpenGov \cite{Valastin2024proto}. Karpatkey-style treasury
+dashboards report treasury composition, exposure, and runway across DAOs.
+Dune, Nansen, and Token Terminal expose on-chain spending, delegate
+behaviour, and protocol-level metrics that voters consult during evaluation.
+% TODO citation needed: Tally and Boardroom DAO governance frontends.
+% TODO citation needed: Snapshot off-chain voting.
+% TODO citation needed: Karpatkey-style treasury reporting.
+
+These tools matter for governance participation, and the thesis relies on the
+evidence they expose. Their scope is presentation, aggregation, and voting
+workflow, not intent-conditioned proposal valuation. They show voters which
+proposals exist, what discussion they have attracted, and how they are
+moving through governance. They do not project that evidence through a
+stated stewardship intent, do not instantiate Availability, Durability, and
+Utility for the proposal class, and do not emit an auditable valuation
+trace that a deterministic validator can check before a vote is recommended.
+They are complementary to ICVP, not a substitute for it.
+
+\subsubsection{Valuation Approaches for NFTs, Productive Assets, and Proposals}
+
+Asset-class-specific valuation work supplies many of the building blocks an
+ICVP projection needs. NFT valuation has been studied through hedonic-pricing
+models that combine traits, sales history, and rarity
+\cite{Lohmer2024, Ante2021, Dowling2022, Nadini2021, Kong2021}, through
+provenance- and metadata-based durability assessment, and through community
+or access-rights signalling. Productive-asset valuation is dominated by
+yield, peg, and protocol-risk analyses for liquid staking and DeFi positions,
+covering audit history, validator-set composition, slashing exposure, and
+liquidation-depth analysis \cite{frangella2022aave, gambacorta2024defi}.
+Treasury-proposal valuation in academic and practitioner work mostly takes
+the form of qualitative rubrics and case studies of voting behaviour
+\cite{Rodrigues2022, Valastin2024proto}, sometimes paired with quadratic
+funding that aggregates small contributions into a public-goods signal
+\cite{Buterin2018QF, Buterin2019, Pasquini2021, Weyl2018}.
+
+These approaches tell ICVP which evidence is informative inside a particular
+regime, but they stay regime-specific. They do not share one decision
+contract across asset classes, do not formalise how intent reshapes the
+relevant evidence, and do not produce one valuation trace that policy
+enforcement can gate on. ICVP reuses their domain insights inside the
+regime-specific projections $P_i$ and instantiations $\Phi_i$. The
+contribution at this layer is the cross-regime decision model and the trace
+it emits, not a new asset-specific scoring formula.
+
+\subsubsection{Blockchain Agent Platforms}
+
+Existing blockchain agent platforms demonstrate concrete ways to combine
+off-chain artificial intelligence with on-chain identity, wallets, incentives,
+and execution. They are useful examples of the environment in which ICVP would
+operate, but they should not be treated as the whole state of the art.
 
 Virtuals Protocol enables the creation, co-ownership, and interaction with
-tokenized AI agents, allowing shared economic ownership of autonomous digital entities
-\cite{VirtualsWhitepaper2024}.
+tokenised AI agents \cite{VirtualsWhitepaper2024}. Each agent is represented as
+an NFT with an associated token-bound account, so the agent can have a persistent
+on-chain identity and wallet-like capabilities. The model is strongest as a
+community-ownership and agent-tokenisation mechanism: economic upside and
+governance can be shared among token holders. Its limitation for this thesis is
+that value interpretation is mostly left to market dynamics, token incentives,
+and platform-level governance. The platform does not formalise an
+intent-conditioned evidence projection or require a valuation trace before an
+agent-related asset action is authorised.
 
-Each AI agent in Virtuals exists as an NFT with a token-bound smart contract account
-implemented via ERC-6551 standard \cite{Wang2023}. This architecture gives each Agent
-a persistent on-chain identity with its own wallet capabilities—the NFT itself can
-hold assets and serve as a message sender for transactions. The AI logic (typically
-a large language model) operates off-chain. Still, it can trigger on-chain
-actions through the NFT's associated account.
+Autonolas, or Olas, provides decentralised infrastructure for autonomous
+services that run off-chain while interacting with on-chain contracts
+\cite{AICoin2023, OlasNetwork2024}. It separates agent code, service registries,
+operators, and on-chain treasuries, and it is especially relevant for
+fault-tolerant multi-agent operation. Autonolas therefore addresses service
+coordination and operator incentives more directly than consumer wallet
+delegation. It can support autonomous services that act across chains, but it
+does not define the ICVP decision layer: the system does not require
+intent-specific evidence completeness, intent-instantiated valuation dimensions,
+or human-approved trace-gated transaction preparation for every value-relevant
+action.
 
-The novelty of Virtuals lies in a novel shared ownership model. Each Agent is launched
-with its own governance token\footnote{1 billion ERC-20 tokens minted per Agent},
-creating a community of token holders who collectively govern and fund the Agent's
-development \cite{VirtualsWhitepaper2024}. This tokenization enables fractional
-investment in an agent's potential success—effectively turning AI agents into
-community-owned assets. Governance token holders can participate in decision-making
-about the Agent's capabilities, parameters, and resource allocation.
-
-On the other hand, every Agent has to communicate with the GAME server via the
-API key. Therefore, every reasoning runs on the proprietary server that can
-return the response. Moreover, the disruption of the server agent is not able to
-function correctly.
-
-% \begin{figure}[!h]
-% 	\centering
-% 	% If you have a relevant image for Virtuals, add it here
-% 	% \includegraphics[width=\columnwidth]{images/virtuals.png}
-% 	\caption{Conceptual illustration of a token-bound AI agent on Virtuals
-% 	Protocol}
-% 	\label{fig:virtuals}
-% \end{figure}
-
-\subsubsection{Autonolas / Olas Network (Ethereum \& Multichain)}
-
-Autonolas (OLAS) is a decentralized infrastructure for open-source autonomous
-services and agents that began development in 2021, making it one of the first movers
-in on-chain AI agents. It focuses on enabling "autonomous services that run off-chain
-but interact on-chain and off-chain without restrictions" \cite{AICoin2023}.
-
-Unlike Virtuals' NFT-centric approach, Autonolas separates the off-chain agent code
-from on-chain coordination contracts. It provides an on-chain "agent registry." and
-"service registry," where developers can publish agent implementations and
-services that utilize them \cite{AICoin2023}. These agents often operate in multi-agent
-configurations where several independent instances work together for fault tolerance.
-
-The system leverages account abstraction extensively: Autonolas agents typically
-interact with Ethereum via smart contract wallets. Multi-operator agent services might use threshold signatures
-or multisig wallets to jointly manage on-chain actions, reducing single points
-of failure. The platform operates across multiple EVM chains, including Ethereum
-mainnet and several L2 networks \cite{OlasNetwork2024}.
-
-
-The OLAS token provides governance rights and economic incentives within the ecosystem.
-The platform implements crypto-economic mechanisms like staking and bonding
-curves to reward both operators (who run agent instances) and developers (who build
-agent code) \cite{OlasNetwork2024}. Revenue generated by agent services flows into
-on-chain treasuries (typically Gnosis Safe contracts \cite{Liochon2023}) controlled by the service,
-which then automatically distributes payouts to stakeholders.
-
-% \begin{figure}[!h]
-% 	\centering
-% 	% If you have a relevant image for Autonolas, add it here
-% 	% \includegraphics[width=\columnwidth]{images/autonolas.png}
-% 	\caption{Multi-agent service architecture in Autonolas}
-% 	\label{fig:autonolas}
-% \end{figure}
-
-\subsubsection{Griffain (Solana)}
-
-Griffain is a rapidly growing platform for personal AI agents on the Solana
-blockchain. The project's main goal is to simplify users' operations into
-natural language without requiring a specialized user interface.
-
-Griffain implements a seven-step model:
-\begin{itemize}
-	\item Action – User types "Swap 5 SOL to USDC".
-
-	\item LLM parse – Runtime picks the swap action and parameters.
-
-	\item Wallet check – Privy session signer verifies SOL balance.
-
-	\item Route selection – Jupiter API returns the best path; Raydium pool if
-		needed.
-
-	\item Transaction builds \& sign – Execution service assembles SPL TokenSwap IX,
-		signs with delegated key.
-
-	\item Submit – Tx sent via Solana RPC; signature pushed to thread history.
-
-	\item Billing – 1 Energy debited; user rewarded 0.25 Energy cashback.
-\end{itemize}
-
-When a user issues a command via the interface, natural language processing interprets
-the intent and assigns the task to the relevant specialized Agent. For
-transaction execution, Griffain employs a delegated wallet infrastructure (via
-Privy), where each Agent operates through a Solana keypair linked to the user's
-main wallet \cite{Griffain2024}. This design isolates agent activity—the Agent can
-only access funds explicitly transferred to its delegated wallet. After we
-approve the following command, the Agent picks up the best route using Jupiter API.
-Upon returning instructions from the Jupiter API, a transaction is signed and submitted
-to the Solana blockchain. Each action consumes energy, translating roughly 100 messages
-(input-output from the LLM).
-
-Unlike Virtuals' shared ownership model or Autonolas' protocol governance,
-Griffain adopts a more traditional user-owns-agent approach. Each Agent belongs exclusively
-to its creator, without fractional ownership or community governance. The GRIFFAIN
-token serves primarily as a utility and speculative asset rather than a governance
-mechanism for individual agents.
-
-One disadvantage of the Griffain protocol is that agents may "hallucinate" irreversible
-transfers. Despite safeguards, AI agents can still make wrong decisions. For
-example, a trading agent might misinterpret a command and execute a bad trade.
-Therefore, autonomy is limited for complex tasks. However, we can set up cron to
-execute commands regularly.
+Griffain illustrates a user-facing natural-language agent experience on Solana.
+The user states an operation, the agent parses the command, checks wallet state,
+selects routes through services such as Jupiter, prepares and submits the
+transaction, and accounts for usage through its energy model \cite{Griffain2024}.
+This is valuable as a usability reference because it reduces blockchain
+interaction to natural-language task delegation. The trade-off is that the
+decision path is not an auditable ICVP-style valuation trace. A command can be
+translated into an action, but the system does not formally expose which
+evidence made the action valuable under the user's intent, how Availability,
+Durability, and Utility were instantiated, or which missing-evidence condition
+should force a \textit{defer} rather than a transaction proposal.
 
 \begin{table}[!htb]
 	\centering
-	\caption{Comprehensive Comparison of Blockchain AI Agent Platforms}
-	\label{tab:ai-agents-detailed} \scriptsize
-	\begin{tabular}{|p{1.8cm}|p{3.8cm}|p{3.8cm}|p{3.8cm}|}
+	\caption{Related-work comparison against the ICVP thesis gap}
+	\label{tab:related-work-icvp}
+	\scriptsize
+	\begin{tabular}{|p{3.0cm}|p{4.6cm}|p{5.7cm}|}
 		\hline
-		\textbf{Parameter}            & \textbf{Virtuals Protocol}                      & \textbf{Autonolas}                               & \textbf{Griffain}                           \\
+		\textbf{Category} & \textbf{Main contribution} & \textbf{Limit relative to ICVP} \\
 		\hline
-		Blockchain                    & Base (Ethereum L2)                              & Ethereum + Multiple L2s                          & Solana                                      \\
+		Intent protocols and solver systems & Express desired execution outcomes and route them through solvers. & Do not formalise intent-conditioned value interpretation, evidence projection, or $A/D/U$ instantiation. \\
 		\hline
-		Agent Identity                & ERC-6551 token-bound accounts (NFT with wallet) & Smart contracts with registry system             & Soulbound NFTs + delegated wallets          \\
+		Account abstraction and delegated execution & Provide programmable authorisation, session-like delegation, batching, recovery, and gas abstraction. & Authorise transactions, but do not require valuation traces or evidence-completeness checks. \\
 		\hline
-		AI Integration                & Off-chain LLMs with on-chain execution          & Multi-agent services with distributed operation  & Task-specific AI modules with NLP interface \\
+		Agent payments and agent wallets & Let agents hold wallets, pay for services, and initiate machine-to-machine payments. & Provide payment and action rails, but not a contextual value decision model. \\
 		\hline
-		Security Model                & Token governance for decision-making            & Multi-operator validation (threshold signatures) & Wallet delegation with spending limits      \\
+		Agent identity and reputation & Identify agents, describe capabilities, and attach reputation or ratings. & Validate who the agent is, not what value means under a stated intent. \\
 		\hline
-		Ownership Structure           & Fractional (community-owned via ERC-20)         & Protocol incentives for operators/developers     & Single-user ownership                       \\
+		Policy wallets and custody & Enforce spending limits, approvals, allowlists, and transaction policies. & Check policy compliance, but not trace-gated valuation backed by intent-required evidence. \\
 		\hline
-		Value Capture                 & Agent treasury + token appreciation             & Service fees distributed to stakeholders         & Platform token + service fees               \\
+		Treasury governance tooling & Aggregate proposals, surface discussion and sentiment, and run voting workflow. & Present and aggregate proposals, but do not project them through stewardship intent into auditable valuation traces. \\
 		\hline
-		Monetization                  & Token markets with bonding curves               & Agent registry licensing fees                    & Platform token + transaction fees           \\
+		Valuation approaches per asset class & Provide regime-specific scoring, hedonic models, and quadratic-funding signals for NFTs, productive assets, and proposals. & Remain asset-class specific; do not share a cross-regime decision contract or emit policy-gateable valuation traces. \\
 		\hline
-		Primary Use Cases             & Entertainment, social agents, gaming            & DeFi automation, DAO governance, oracles         & Personal finance, trading automation        \\
-		\hline
-		Agent Autonomy                & Requires input from user                        & Agents can colaborate on multiple tasks           & Requires input from user                    \\
-		\hline
-		Modularity                    & Standardized IO ABI                             & plug-and-play services                             & forwarding input to other agent                    \\
+		Blockchain agent platforms & Combine off-chain agents with on-chain identity, services, incentives, and user-facing execution. & Demonstrate useful agent architectures, but do not jointly provide ICVP projection, valuation traces, and NFTAA-level trace-gated authorisation. \\
 		\hline
 	\end{tabular}
-\end{table} 
+\end{table}
 
-Our analysis of Virtuals Protocol, Autonolas, and Griffain reveals distinct approaches
-to implementing AI agents on blockchain networks, each with unique strengths and
-trade-offs. Table \ref{tab:ai-agents-detailed} provides a comprehensive comparison
-across technical, economic, usage, and market dimensions.
+\subsubsection{Resulting Gap}
 
-\textbf{Virtuals Protocol} pioneered a community ownership model where AI agents
-exist as tokenized entities (via ERC-6551) with their own on-chain treasuries.
-This approach excels in creating economically aligned communities around AI
-development but faces challenges in governance complexity and regulatory
-uncertainty regarding tokenized AI assets.
+The current state of the art provides many pieces required for agentic value
+systems. Intent protocols and solver markets can execute specified outcomes.
+Account abstraction and session delegation can make authorisation programmable.
+Agent-payment systems can let machines pay and act. Agent identity and
+reputation standards can describe and assess agents. Policy wallets and custody
+systems can enforce transaction constraints. Treasury governance tools aggregate
+proposals and run voting workflow. Asset-class-specific valuation work supplies
+regime-level evidence. Platforms such as Virtuals, Autonolas, and Griffain show
+that AI agents can be connected to on-chain identity, services, incentives, and
+user interfaces.
 
-\textbf{Autonolas} provides the most developed fault-tolerance model among the
-surveyed systems, with a multi-agent architecture and cross-chain coordination
-suited to mission-critical workloads. It does not, however, offer an account-level
-primitive for agent delegation. Agents act through standard service contracts
-rather than through accounts that carry their own policy, which leaves the
-delegation gap identified in Chapter~\ref{sec:analysis} open.
-
-\textbf{Griffain} prioritises user experience through a natural-language interface
-on Solana. The trade-off is that decision-making is centralised in the platform
-operator, and value assessment is reduced to direct execution with no support
-for multi-dimensional evaluation or auditable human-in-the-loop voting. Griffain
-therefore leaves the value-assessment and governance-support gaps unaddressed.
-
-How are these platforms connected to the Internet of Value? That is an excellent
-and valid question. Each of these platforms represents different visions for the
-integration of AI and blockchain. Virtuals demonstrate how AI agents can become
-community-owned digital assets with economic rights and governance structures. Autonolas
-shows how decentralized, multi-agent systems can coordinate complex tasks with
-enhanced security and reliability. Griffain illustrates how natural language interfaces
-can make blockchain complexity accessible to mainstream users.
-
-None of the surveyed platforms addresses all three gaps identified in this thesis:
-multi-dimensional value assessment, agent-oriented on-chain primitives, and
-auditable human-in-the-loop governance support. Virtuals leaves value assessment
-to market dynamics, Autonolas does not provide an account-level primitive for
-agent delegation, and Griffain trades autonomy for usability. Chapter~\ref{sec:design}
-proposes an architecture designed to test whether these gaps can be closed
-together rather than picked off one at a time.
-
-Open challenges in balancing autonomy with safety, in regulatory treatment of
-tokenised agents, and in keeping off-chain reasoning aligned with on-chain
-execution remain across all three platforms. Chapter~\ref{sec:design} returns
-to these challenges in the context of the gaps identified above.
+Existing systems give us execution, automation, settlement, custody, or
+coordination primitives. They do not give us a formal model that projects
+stated intent over heterogeneous evidence spaces into auditable valuation
+traces and that preserves human approval and policy-constrained execution.
+That is the joint decision-and-authorisation layer studied in this thesis.
+No existing work jointly provides intent-conditioned evidence projection,
+intent-instantiated Availability, Durability, and Utility, auditable
+valuation traces, human-approved transaction preparation, and NFTAA-level
+trace-gated authorisation. ICVP addresses this gap by treating stated intent as
+a projection over heterogeneous evidence spaces and by making the resulting
+decision inspectable before any value-relevant action is authorised on-chain. The
+claim is not that ICVP is objectively better than these systems. The claim is
+that they mostly solve routing, delegation, identity, payment, or policy
+enforcement problems, while ICVP targets the evidence-grounded interpretation of
+value that must precede defensible agentic execution in the Internet of Value.
