@@ -1,7 +1,7 @@
 \section{Evaluation}
 \label{sec:evaluation}
 
-This chapter evaluates Intent-Conditioned Value Projection as a decision model for the Internet of Value. The empirical question is the one posed in RQ3 of Chapter \ref{sec:aims}. To what extent does ICVP improve decision quality, evidence relevance, and auditability across NFT, productive-asset, and treasury-governance scenarios, when compared with single-dimensional and fixed-weight valuation baselines? The chapter is therefore organised around framework validation rather than around a comparison between commercial language models. Model choice is held fixed across configurations within each task and is treated as a configuration variable rather than as the object of study.
+This chapter sets out the evaluation design for Intent-Conditioned Value Projection as a decision model for the Internet of Value and reports the preliminary numbers obtained on the current benchmark run. The empirical question is the one posed in RQ3 of Chapter \ref{sec:aims}. To what extent does ICVP improve decision quality, evidence relevance, and auditability across NFT, productive-asset, and treasury-governance scenarios, when compared with single-dimensional and fixed-weight valuation baselines? The chapter is organised around framework validation rather than around a comparison between commercial language models. Model choice is held fixed across configurations within each task and is treated as a configuration variable rather than as the object of study. The figures reported in the tables that follow are preliminary. They are based on partial runs with the reference panel and on a snapshot of the evidence space, and they are subject to revision when the full benchmark is rerun with finalised model versions and final evidence snapshots. Where a specific figure is a placeholder rather than a measurement, it is marked as such.
 
 \subsection{Evaluation design}
 
@@ -39,7 +39,7 @@ Table \ref{tab:nft-decision} reports decision agreement and component score devi
 
 \begin{table}[h]
 \centering
-\caption{Decision quality on the Pudgy Penguin regime. Component MAE is the mean absolute error of $A/D/U$ scores against the expert median across the four tasks.}
+\caption{Preliminary decision quality on the Pudgy Penguin regime. Component MAE is the mean absolute error of $A/D/U$ scores against the expert median across the four tasks. Numbers are subject to revision after the full benchmark rerun.}
 \label{tab:nft-decision}
 \begin{tabular}{|l|c|c|c|c|}
 \hline
@@ -60,7 +60,7 @@ Table \ref{tab:nft-trace} reports evidence relevance and trace quality across th
 
 \begin{table}[h]
 \centering
-\caption{Evidence relevance and trace quality on the Pudgy Penguin regime.}
+\caption{Preliminary evidence relevance and trace quality on the Pudgy Penguin regime. Numbers are subject to revision after the full benchmark rerun.}
 \label{tab:nft-trace}
 \begin{tabular}{|l|c|c|c|c|}
 \hline
@@ -81,7 +81,7 @@ The reference decisions for the stETH regime were \textit{proceed} for long-term
 
 \begin{table}[h]
 \centering
-\caption{Decision quality on the stETH regime.}
+\caption{Preliminary decision quality on the stETH regime. Numbers are subject to revision after the full benchmark rerun.}
 \label{tab:steth-decision}
 \begin{tabular}{|l|c|c|c|c|}
 \hline
@@ -102,7 +102,7 @@ Under public-resource stewardship intent, Availability is instantiated as scarci
 
 \begin{table}[h]
 \centering
-\caption{Decision quality on the Polkadot OpenGov regime.}
+\caption{Preliminary decision quality on the Polkadot OpenGov regime. Numbers are subject to revision after the full benchmark rerun.}
 \label{tab:gov-decision}
 \begin{tabular}{|l|c|c|c|c|}
 \hline
