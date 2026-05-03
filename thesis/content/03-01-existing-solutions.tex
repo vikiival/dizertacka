@@ -19,11 +19,8 @@ Intent-centric protocols replace low-level transaction construction with a
 higher-level statement of desired outcome. In ERC-7683-style settlement, or in
 solver-mediated systems such as CoW Protocol, UniswapX, and Across-style
 cross-chain intents, the user expresses an outcome and specialised solvers
-compete or coordinate to satisfy it.
-% TODO citation needed: ERC-7683 cross-chain intents.
-% TODO citation needed: CoW Protocol solver-based intents.
-% TODO citation needed: UniswapX intent-based routing.
-% TODO citation needed: Across cross-chain intents.
+compete or coordinate to satisfy it \cite{ERC7683, Nag2025CoWMechanism,
+UniswapXWhitepaper, AcrossCrosschainIntents}.
 
 These systems are directly relevant because they show that user intent can be a
 first-class input to blockchain execution. Their intent, however, is normally an
@@ -53,8 +50,7 @@ code for a transaction \cite{EIP7702}. Broader surveys of account abstraction
 describe this movement as a shift from key-based accounts toward programmable
 account semantics \cite{Wang2023, Duan2024}. Session-permission proposals such
 as ERC-7715 extend this direction by letting users grant limited capabilities to
-applications or agents.
-% TODO citation needed: ERC-7715 session permissions.
+applications or agents \cite{ERC7715}.
 
 This line of work is important for the thesis because it provides the technical
 substrate for constrained delegation. A user can give an agent a session key, a
@@ -78,10 +74,8 @@ $\Phi_i$ used by ICVP.
 Recent agent-payment systems focus on enabling software agents to pay for APIs,
 services, and on-chain actions. Examples include x402-style HTTP payment flows,
 AP2-style agent payment protocols, and developer toolkits such as Coinbase
-AgentKit that combine wallet operations with agentic application logic.
-% TODO citation needed: x402 agent or HTTP payment protocol.
-% TODO citation needed: AP2 agent payment protocol.
-% TODO citation needed: Coinbase AgentKit documentation.
+AgentKit that combine wallet operations with agentic application logic
+\cite{x402Protocol, AP2Spec, CoinbaseAgentKit}.
 
 These systems address a practical bottleneck: agents need payment rails and
 wallet interfaces if they are to act in open digital markets. They can let an
@@ -122,9 +116,8 @@ movement. Safe modules and guards can restrict calls, require multisig approval,
 or add custom checks before execution \cite{Liochon2023}. Institutional custody
 systems such as Turnkey- or Fireblocks-style policy engines similarly enforce
 approval workflows, spending limits, role-based controls, and destination
-constraints.
-% TODO citation needed: Turnkey policy engine.
-% TODO citation needed: Fireblocks policy engine.
+constraints \cite{TurnkeyPolicyEngine, FireblocksPolicyEngine,
+ZetzscheNikolakopoulou2025CryptoCustody}.
 
 This work is close to the enforcement side of the thesis. It shows that
 transaction authorisation can be constrained by explicit policy rather than by a
@@ -147,13 +140,13 @@ On-chain treasury governance has its own tooling stack. Tally and Boardroom
 aggregate proposals across DAO frameworks and provide voting interfaces.
 Snapshot runs off-chain signalling votes that are later settled on-chain.
 Polkassembly and Subsquare carry proposal discussion, sentiment, and voter
-context for Polkadot OpenGov \cite{Valastin2024proto}. Karpatkey-style treasury
-dashboards report treasury composition, exposure, and runway across DAOs.
+context for Polkadot OpenGov \cite{Valastin2024proto, PolkassemblyArchive,
+SubsquareReferenda}. Karpatkey-style treasury dashboards report treasury
+composition, exposure, and runway across DAOs.
 Dune, Nansen, and Token Terminal expose on-chain spending, delegate
-behaviour, and protocol-level metrics that voters consult during evaluation.
-% TODO citation needed: Tally and Boardroom DAO governance frontends.
-% TODO citation needed: Snapshot off-chain voting.
-% TODO citation needed: Karpatkey-style treasury reporting.
+behaviour, and protocol-level metrics that voters consult during evaluation
+\cite{TallyGovernanceDocs, BoardroomGovernanceAPI, SnapshotDocs, KpkDocs,
+Saesen2026DAOGovernancePerformance}.
 
 These tools matter for governance participation, and the thesis relies on the
 evidence they expose. Their scope is presentation, aggregation, and voting
