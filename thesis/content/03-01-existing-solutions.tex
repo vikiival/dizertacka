@@ -184,6 +184,42 @@ regime-specific projections $P_i$ and instantiations $\Phi_i$. The
 contribution at this layer is the cross-regime decision model and the trace
 it emits, not a new asset-specific scoring formula.
 
+\subsubsection{Multi-Criteria Decision Analysis}
+
+The methodological tradition closest to the aggregation step of ICVP is
+multi-criteria decision analysis. Multi-Attribute Utility Theory composes a
+scalar utility from independent attribute utilities under a utility-theoretic
+axiomatisation \cite{Keeney1976}. The Analytic Hierarchy Process derives
+attribute weights from pairwise comparisons and a consistency check
+\cite{Saaty1980}. Outranking methods such as ELECTRE and PROMETHEE replace
+scalar aggregation with pairwise preference relations supported by
+concordance, discordance, and preference-function machinery
+\cite{Roy1991,Brans1986}. These methods are mature, are widely used in
+finance, engineering, and policy analysis, and supply rigorous machinery for
+combining several criteria into a decision once the criteria and their
+measurements are fixed.
+
+The limitation that matters for the Internet of Value is shared across the
+family. Multi-criteria decision analysis assumes that the criteria are
+already known, that they are measured comparably across alternatives, and
+that the only open question is how to aggregate them. For heterogeneous
+value objects under different intents, this assumption is exactly what
+breaks. The criteria that matter under speculative trading of an NFT,
+productive collateral use of stETH, and public-resource stewardship of a
+treasury proposal are not the same criteria, and the empirical content of
+Availability, Durability, and Utility is reset by the intent. ICVP is
+therefore positioned earlier in the pipeline than MCDA. The contribution is
+the projection $P_i$ that selects the evidence relevant under intent $i$ and
+the instantiation $\Phi_i$ that fixes what Availability, Durability, and
+Utility mean for the asset class and action context. The aggregation step
+$g_i$ that maps $(A_i, D_i, U_i)$ to a valuation can be carried out with
+weighted utility in the spirit of MAUT, with an outranking aggregator in the
+spirit of ELECTRE or PROMETHEE, or with an AHP-derived weight vector. Our
+claim is not that we replace MCDA. Our claim is that without an
+intent-conditioned projection and an intent-instantiated definition of the
+criteria, MCDA cannot be applied across heterogeneous Internet of Value
+objects without quietly assuming that one coordinate system fits them all.
+
 \subsubsection{Blockchain Agent Platforms}
 
 Existing blockchain agent platforms demonstrate concrete ways to combine
