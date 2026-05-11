@@ -1,7 +1,46 @@
 \section{Design}
 \label{sec:design}
 
-This chapter presents the formal model and design method for Intent-Conditioned Value Projection, addressing the research questions and challenges set out in Chapter \ref{sec:aims}. We first define ICVP as a decision model that treats stated user or governance intent as a projection over heterogeneous Internet of Value evidence spaces, and we state the two safety properties that link the model to the execution boundary. We then describe the agentic method that carries the model out, and the architecture that hosts it, including the account-level enforcement primitive (NFTAA) that realises trace-gated authorisation. The architecture follows from the formal model, not the other way round.
+This chapter presents the formal model and design method for Intent-Conditioned Value Projection, addressing the research questions and challenges set out in Chapter \ref{sec:aims}. We first state the threat model that the design has to contain, so that later safety claims can be read against a specific set of adversaries and failure modes. We then define ICVP as a decision model that treats stated user or governance intent as a projection over heterogeneous Internet of Value evidence spaces, and we state the two safety properties that link the model to the execution boundary. We then describe the agentic method that carries the model out, and the architecture that hosts it, including the account-level enforcement primitive (NFTAA) that realises trace-gated authorisation. The architecture follows from the formal model, not the other way round.
+
+\subsection{Threat Model and Trust Assumptions}
+\label{sec:threat-model}
+
+The architecture combines components with very different trust properties. The on-chain layer is deterministic and inspectable. The validator and the schemas are authored artefacts under our control. The language model that drives the proposer is opaque and replaceable. External evidence sources are partially trusted and can fail or be manipulated. Human approvers are trusted to authorise their own actions but are not infallible. A defensible safety story therefore has to name the adversaries and failure modes that the design contains, identify which components are trusted and which are not, and connect each row to the mechanism that contains it. We do this in Table \ref{tab:threat-model}. The safety properties in Section \ref{sec:proof-targets} are stated against this table, and each row is referenced from at least one invariant or check.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{|c|p{3.4cm}|p{3.0cm}|p{6.0cm}|}
+\hline
+\textbf{\#} & \textbf{Threat} & \textbf{Trust status of affected component} & \textbf{Containing mechanism} \\
+\hline
+T1 & Poisoned evidence (a source returns crafted content intended to flip the decision) & Evidence sources are untrusted & Schema requires multi-source corroboration and provenance per category. Validator rejects traces that rely on a single uncorroborated source for a decision-critical category. Hard constraints catch out-of-range values. \\
+\hline
+T2 & Stale evidence (data that was fresh when retrieved but is no longer fresh at authorisation time) & Evidence sources are untrusted, validator is trusted & Per-category freshness TTLs in the \textit{RequiredEvidence} schema, evaluated at authorisation time $t$, not at trace construction time. Section \ref{sec:proof-targets} states this as part of the Trace-Gated Authorisation property. \\
+\hline
+T3 & Prompt injection into the proposer (instructions embedded in retrieved evidence attempt to override the proposer's role) & Language model and retrieved text are untrusted & Proposer cannot emit a final decision. It can only emit a trace structured to the validator schema. Out-of-schema fields and free-text recommendations are dropped. The validator performs the gating check on structured fields, not on natural-language output. \\
+\hline
+T4 & Malicious or vague intent (a stated intent that does not correspond to the action being prepared, or that is too underspecified for a confident decision) & Intent comes from a trusted human but is not assumed correct & Intent is recorded as a structured input that drives the projection $P_i$. Underspecified intents fail schema requirements and force \textit{defer}. The transaction preparation step checks that the prepared transaction matches the trace, which in turn is bound to the recorded intent. \\
+\hline
+T5 & Manipulated oracles (price or risk feeds report manipulated values) & Oracles are untrusted & Schema specifies the oracle set per category, requires cross-feed agreement within a tolerance for decision-critical categories, and records each feed's provenance in the trace. NFTAA policy can additionally cap notional per action. \\
+\hline
+T6 & Incomplete traces (a trace that omits a required evidence category, or whose provenance is missing) & Proposer is untrusted, validator is trusted & Evidence-Completeness Safety in Section \ref{sec:proof-targets}. The validator refuses a confident \textit{proceed} unless \textit{RequiredEvidence}$(i, a) \subseteq E$ and provenance is recorded for every entry in $E$. \\
+\hline
+T7 & Transaction mismatch (a candidate transaction is submitted that does not correspond to the approved trace) & Transaction preparation is trusted-but-verified, signer environment is untrusted & The approval signature covers both the trace hash and the transaction hash. NFTAA verifies that the submitted transaction hashes to the value bound to the approval, and rejects otherwise. \\
+\hline
+T8 & Compromised agent process (the off-chain agent process is corrupted and emits arbitrary traces) & Off-chain runtime is untrusted at the boundary & Authority does not flow through the agent. The agent cannot authorise action. Only a human-approved, validator-signed trace bound to a policy-compliant transaction settles on-chain. A compromised agent can produce invalid traces, which the validator and NFTAA reject. \\
+\hline
+T9 & Policy bypass at NFTAA (an attempt to settle a value-relevant action without passing the on-chain policy) & NFTAA contract is trusted & The NFTAA contract is the sole settlement path for value-relevant actions of the account, and enforces the trace-gated authorisation checks of Section \ref{sec:proof-targets}. Direct asset transfers that bypass NFTAA are out of scope of the account's policy and out of scope of the safety claims. \\
+\hline
+T10 & Schema authorship attack (a weakened or replaced \textit{RequiredEvidence} schema lowers the bar for confident decisions) & Schemas are trusted authored artefacts & Schemas are versioned and content-addressed. The validator signs the trace jointly with the schema version and schema hash. NFTAA only accepts traces whose schema version is in a recognised set. Replacing the schema therefore breaks the signature rather than silently weakening the bar. \\
+\hline
+\end{tabular}
+\caption{Threat model for the ICVP architecture. Each row names a threat, the trust status of the affected component, and the mechanism that contains it. Safety properties in Section \ref{sec:proof-targets} reference the rows they depend on.}
+\label{tab:threat-model}
+\end{table}
+
+Three trust assumptions stand outside the table because they bound the model rather than appear as rows in it. We assume that at least one human approver acts honestly for the actions submitted through their account, that the validator key is held in a way consistent with its documented model in Section \ref{sec:onchain-layer}, and that the consensus layer of the host chain is not under active attack at the moment of settlement. We do not assume that the language model is correct, that any individual evidence source is honest, that the off-chain runtime is uncompromised, or that intents are well-posed.
 
 \subsection{Intent-Conditioned Value Projection}
 \label{sec:icvp}
