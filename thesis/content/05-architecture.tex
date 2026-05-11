@@ -89,15 +89,57 @@ The first property is \emph{Evidence-Completeness Safety}. Let $\theta$ be the c
 \begin{equation}
 \textsc{Decision}(a, i, E) = \textit{proceed} \;\wedge\; \textsc{Confidence}(a, i, E) \geq \theta \;\Longrightarrow\; \textit{RequiredEvidence}(i, a) \subseteq E \;\wedge\; \textsc{Provenance}(E).
 \end{equation}
-The contrapositive is the operationally useful form. If the required intent-specific evidence is missing, the system must not return a confident \textit{proceed}. It must lower confidence, defer, or decline. Under this property the valuation trace functions as a checked artefact rather than as a narrative.
+The contrapositive is the operationally useful form. If the required intent-specific evidence is missing, the system must not return a confident \textit{proceed}. It must lower confidence, defer, or decline. Under this property the valuation trace functions as a checked artefact rather than as a narrative. This property contains threats T1, T3, and T6 of Table \ref{tab:threat-model}, in the sense that poisoned evidence, prompt-injection attempts that bypass the trace structure, and incomplete traces cannot lead to a confident \textit{proceed}.
 
-The second property is \emph{Trace-Gated Authorisation}. A value-relevant transaction $\textit{tx}$ can be authorised only if there exists a trace $\tau$ such that
+The second property is \emph{Trace-Gated Authorisation}. A value-relevant transaction $\textit{tx}$ submitted at authorisation time $t$ can be authorised only if there exists a trace $\tau$ such that
 \begin{equation}
-\textsc{Authorise}(\textit{tx}) \;\Longrightarrow\; \exists \tau:\; \textsc{ValidTrace}(\tau) \;\wedge\; \textsc{CompleteEvidence}(\tau, i) \;\wedge\; \textsc{Decision}(\tau) = \textit{proceed} \;\wedge\; \textsc{TxMatches}(\textit{tx}, \tau) \;\wedge\; \textsc{PolicyAllows}(\textit{tx}, \tau).
+\begin{aligned}
+\textsc{Authorise}(\textit{tx}, t) \;\Longrightarrow\; \exists \tau:\; & \textsc{ValidTrace}(\tau) \,\wedge\, \textsc{CompleteEvidence}(\tau, i) \,\wedge\, \textsc{Decision}(\tau) = \textit{proceed} \\
+& \wedge\, \textsc{FreshEvidence}(\tau, t) \,\wedge\, \textsc{NotExpired}(\tau, t) \\
+& \wedge\, \textsc{TxMatches}(\textit{tx}, \tau) \,\wedge\, \textsc{PolicyAllows}(\textit{tx}, \tau).
+\end{aligned}
 \end{equation}
-This couples the formal value model to policy-constrained execution. The proof can be carried out over an abstract state machine with active policies, evidence requirements, valuation traces, approvals, nonces, and authorised and executed transactions. The key step is that the only transition that authorises a transaction requires a valid trace with complete evidence, a \textit{proceed} decision, a trace-matching transaction, a permitting policy, a fresh nonce, and a non-revoked, non-expired policy. Section \ref{sec:onchain-layer} returns to this property and specifies the NFTAA-level checks that realise it.
+The freshness predicates are evaluated at the authorisation moment, not at the trace-construction moment. $\textsc{FreshEvidence}(\tau, t)$ holds iff, for every evidence category $c$ used by $\tau$, the recorded acquisition timestamp $\textit{acq}_c$ satisfies $t - \textit{acq}_c \leq \textit{TTL}_c$, where $\textit{TTL}_c$ is the per-category time-to-live recorded in the \textit{RequiredEvidence} schema used by $\tau$. Per-category TTLs are stated in orders of magnitude that match the underlying signal: market and liquidity data in minutes, oracle and peg readings in minutes, protocol-risk signals such as audit status or validator-set composition in days, and team-history or governance-record signals in months. $\textsc{NotExpired}(\tau, t)$ holds iff the trace itself has not crossed its own expiry, which is the minimum of the per-category TTL horizons and the policy expiry.
 
-We do not prove that an authorised transaction is the right transaction. We prove that no transaction can be authorised without a valid trace and a permitting policy. The narrower claim is the one we believe the architecture can defensibly support, even when the agent acts only as an evidence interpreter and recommendation generator.
+This couples the formal value model to policy-constrained execution. The proof can be carried out over an abstract state machine with active policies, schema versions, evidence requirements with per-category TTLs, valuation traces, approvals, nonces, the current time, and authorised and executed transactions. The key transition is the authorisation transition, which fires at time $t$ and requires a valid trace with complete evidence, a \textit{proceed} decision, a trace-matching transaction, a permitting policy, evidence still fresh at $t$, a trace not yet expired at $t$, a fresh nonce, and a non-revoked policy. The trace-built-then-stale case is handled explicitly. A trace $\tau$ that satisfied $\textsc{FreshEvidence}$ when constructed at time $t_0$ but no longer satisfies $\textsc{FreshEvidence}$ at $t > t_0$ falls out of the authorisation transition, because the predicate is evaluated against $t$. The trace can be rebuilt, but it cannot be replayed past its evidence horizon. Section \ref{sec:trace-commitment} specifies the commitment scheme that realises the freshness predicate on-chain, and Section \ref{sec:onchain-layer} returns to this property and specifies the NFTAA-level checks that realise it. This property contains threats T2, T5, T6, T7, T8, T9, and T10 of Table \ref{tab:threat-model}, in the sense that stale evidence, manipulated oracles, incomplete traces, transaction mismatch, a compromised agent process, attempts to bypass NFTAA, and schema substitution cannot lead to authorisation.
+
+We do not prove that an authorised transaction is the right transaction. We prove that no transaction can be authorised without a valid trace, fresh evidence at authorisation time, a recognised schema version, and a permitting policy. The narrower claim is the one we believe the architecture can defensibly support, even when the agent acts only as an evidence interpreter and recommendation generator.
+
+\subsubsection{Trace commitment and on-chain verification}
+\label{sec:trace-commitment}
+
+The two safety properties are stated above as predicates over abstract states. Realising them at the execution boundary requires a commitment scheme that the on-chain layer can check without trusting the off-chain runtime. We describe that scheme here. Section \ref{sec:onchain-layer} returns to the same checks from the NFTAA side.
+
+\paragraph{Off-chain trace storage.}
+The valuation trace $\tau$ is stored off-chain in a content-addressed store, addressed by $\textit{cid}(\tau) = \textsc{Hash}(\tau)$. IPFS is the reference choice in the prototype, but any content-addressed store with the same integrity property is admissible. Storing $\tau$ off-chain keeps the on-chain footprint small, and storing it content-addressed makes the on-chain hash a binding commitment to the bytes that the validator and the human approver saw.
+
+\paragraph{Schema commitment and validator signature.}
+The validator signs the trace jointly with its schema version and schema hash, not separately. Let $\textit{ver}(\tau)$ be the schema version that $\tau$ was validated against and let $\textit{sh}(\tau) = \textsc{Hash}(\textit{schema}_{\textit{ver}(\tau)})$ be the content hash of that schema. The validator emits
+\[
+\sigma_V \;=\; \textsc{Sign}_{\textit{sk}_V}\bigl(\textsc{Hash}(\tau)\,\|\,\textit{ver}(\tau)\,\|\,\textit{sh}(\tau)\bigr).
+\]
+Joint signing has the property that an attempt to retroactively weaken the schema breaks $\sigma_V$, because $\textit{sh}(\tau)$ would no longer match the signed value. This contains threat T10 of Table \ref{tab:threat-model}. The validator key $\textit{sk}_V$ is documented separately. A single validator key is acceptable for the prototype and is the configuration we use. The associated trust assumption is that $\textit{sk}_V$ is held in a way consistent with the trust assumptions of Section \ref{sec:threat-model}. A multi-validator or threshold configuration is a straightforward extension and does not change the safety statements.
+
+\paragraph{Approval signature.}
+The human approver signs the trace hash and the transaction hash jointly, not in sequence. Let $\textit{tx}$ be the candidate transaction. The approver emits
+\[
+\sigma_H \;=\; \textsc{Sign}_{\textit{sk}_H}\bigl(\textsc{Hash}(\tau)\,\|\,\textsc{Hash}(\textit{tx})\bigr).
+\]
+Joint signing has the property that an attempt to swap the transaction after approval breaks $\sigma_H$, because $\textsc{Hash}(\textit{tx})$ would no longer match the signed value. This contains threat T7 of Table \ref{tab:threat-model}.
+
+\paragraph{NFTAA on-chain check.}
+At authorisation time $t$, the NFTAA contract performs the following checks in order. Each check corresponds to a conjunct of the Trace-Gated Authorisation property.
+\begin{enumerate}
+    \item \textbf{Hash match.} The submitted $\textit{tx}$ references a trace commitment $\textit{cid}(\tau)$ and the contract checks $\textit{cid}(\tau) = \textsc{Hash}(\tau)$ against the value bound to the approval. (Realises $\textsc{ValidTrace}$ and $\textsc{TxMatches}$.)
+    \item \textbf{Schema version recognised.} The schema version $\textit{ver}(\tau)$ is in the contract's accepted-version set and the recorded $\textit{sh}(\tau)$ matches the version's registered hash. (Contains T10.)
+    \item \textbf{Validator signature.} $\textsc{Verify}_{\textit{pk}_V}(\sigma_V, \textsc{Hash}(\tau)\,\|\,\textit{ver}(\tau)\,\|\,\textit{sh}(\tau))$ holds. (Realises $\textsc{ValidTrace}$ jointly with the previous step.)
+    \item \textbf{Approval signature.} $\textsc{Verify}_{\textit{pk}_H}(\sigma_H, \textsc{Hash}(\tau)\,\|\,\textsc{Hash}(\textit{tx}))$ holds, for an approver key recognised by the account's policy. (Contains T7.)
+    \item \textbf{Policy match.} The actor, asset, target contract, function selector, amount, and chain identifier of $\textit{tx}$ fall inside the active policy. (Realises $\textsc{PolicyAllows}$, contains T9.)
+    \item \textbf{Fresh nonce.} The trace-bound nonce has not been used by this account. (Replay protection.)
+    \item \textbf{Not expired.} $t$ is not past the trace expiry $\textit{exp}(\tau)$ or the policy expiry. (Realises $\textsc{NotExpired}$, contains T2.)
+    \item \textbf{Not revoked.} The policy has not been revoked at time $t$. (Closes the time-of-check to time-of-use gap on the policy side.)
+\end{enumerate}
+Settlement happens only when all eight checks hold. If any check fails the call reverts and no state change is committed. The freshness predicate $\textsc{FreshEvidence}(\tau, t)$ is enforced as part of step seven on the NFTAA side, because $\textit{exp}(\tau)$ is computed off-chain as the minimum of the per-category TTL horizons and is recorded in $\tau$ before validator signing. An attempt to relax $\textit{exp}(\tau)$ after signing breaks $\sigma_V$. The eight checks together realise the Trace-Gated Authorisation property at the execution boundary. The detailed call sequence for the prototype, including the signing pipeline and the NFTAA call sites, is presented in the implementation chapter alongside the contract code.
 
 \subsection{Design Decisions and Rejected Alternatives}
 \label{sec:design-decisions}
