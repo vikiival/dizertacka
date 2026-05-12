@@ -28,7 +28,15 @@ Z analýzy vyplývajú tri medzery v súčasnom stave. Prvá medzera je v hodnot
 
 Cieľom práce je navrhnúť a overiť architektúru, ktorá umožňuje agentové rozhodovanie nad rôznorodými aktívami v prostredí Internetu hodnoty tak, aby bolo zachované hodnotenie podľa zámeru, dohľadateľnosť dôkazov, schválenie človekom a obmedzenia politiky na úrovni účtu. Hlavným prínosom je formálny model Intent-Conditioned Value Projection (ICVP), v ktorom zámer používateľa alebo organizácie pôsobí ako projekcia nad priestorom heterogénnych dôkazov. Zámer neurčuje len dôležitosť dimenzií dostupnosti, trvácnosti a úžitku, ale aj to, čo tieto dimenzie pre dané aktívum a danú akciu znamenajú.
 
-Práca formuluje tri výskumné otázky. Prvá sa pýta, aký formálny model dokáže reprezentovať zámer ako projekciu nad dôkazmi a produkovať overiteľné rozhodnutia. Druhá sa pýta, akou metódou je možné tento model uviesť do prevádzky v agentovom systéme so zachovaním stopy dôkazov a schválenia človekom. Tretia otázka skúma, do akej miery navrhnutý prístup zlepšuje kvalitu rozhodnutia oproti zúženým variantom, ktoré z modelu odoberajú časť informácie. Práca vymedzuje aj dve bezpečnostné vlastnosti, a to úplnosť dôkazov pri kladnom rozhodnutí a viazanosť autorizácie transakcie na platnú stopu rozhodnutia.
+Práca formuluje tri výskumné otázky:
+
+\begin{enumerate}
+   \item \textbf{VO1.} Aký formálny model dokáže reprezentovať zámer používateľa alebo organizácie ako projekciu nad heterogénnymi dôkazovými priestormi Internetu hodnoty a produkovať inštanciované hodnotové dimenzie a overiteľné rozhodovacie signály pre aktíva a akcie nad aktívami?
+   \item \textbf{VO2.} Akou metódou je možné Intent-Conditioned Value Projection uviesť do prevádzky v agentovom systéme podpory rozhodovania so zachovaním dohľadateľnosti dôkazov, schválenia človekom a politicky obmedzenej prípravy transakcií?
+   \item \textbf{VO3.} Do akej miery Intent-Conditioned Value Projection zlepšuje kvalitu rozhodnutia, relevantnosť dôkazov a auditovateľnosť pri rozhodnutiach o nezameniteľných tokenoch, produktívnych aktívach a správe pokladnice v porovnaní s jednorozmerným variantom a variantom s pevnými váhami?
+\end{enumerate}
+
+Okrem výskumných otázok práca vymedzuje aj dve bezpečnostné vlastnosti, a to úplnosť dôkazov pri kladnom rozhodnutí a viazanosť autorizácie transakcie na platnú stopu rozhodnutia.
 
 \subsection*{Návrh riešenia}
 
