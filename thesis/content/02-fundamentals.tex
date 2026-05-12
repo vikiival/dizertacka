@@ -1,7 +1,7 @@
 \section{Blockchain technology}
 \label{sec:blockchain}
 
-"Do you need a blockchain?" was a breaking paper describing that most use cases do not need blockchain technology \cite{Wust2018}.
+"Do you need a blockchain?" was a breaking paper describing that many use cases do not need blockchain technology \cite{Wust2018}.
 At a surface level, blockchain shares structural similarities with distributed NoSQL databases such as MongoDB: both store data across multiple nodes and support replication \cite{Chowdhury2018}.
 However, the fundamental difference lies in the trust model. A NoSQL database operates under the assumption that all participating nodes are honest and controlled by a single administrative entity. Blockchain, by contrast, is designed for adversarial environments where participants may act maliciously, and it relies on consensus algorithms to ensure that state transitions are valid without requiring trust in any single party \cite{Du2017}.
 The key properties that distinguish blockchain from traditional distributed databases are \cite{Zheng2017}:
@@ -28,7 +28,7 @@ In general, the data structure of the blockchain is the following:
 \end{itemize}
 
 
-However, to properly update the state, we need a genuine algorithm that can decide about the participant of the network that can validate the block validity.
+However, updating shared state requires a consensus algorithm that determines which proposed blocks are valid and how participants agree on the canonical chain.
 This algorithm is known as the consensus algorithm. Formally, a consensus protocol must satisfy two fundamental properties: \textit{safety}, ensuring that all honest nodes agree on the same state and no conflicting transactions are finalized, and \textit{liveness}, guaranteeing that valid transactions are eventually included in the ledger. In the presence of malicious actors, these guarantees are studied under the framework of Byzantine fault tolerance (BFT), where the system can tolerate up to a threshold of faulty or adversarial nodes \cite{Du2017}.
 
 In the area of blockchain, there are many types of consensus algorithms. The most common are \cite{Bach2018}:
@@ -40,8 +40,7 @@ In the area of blockchain, there are many types of consensus algorithms. The mos
   Therefore, the block reward is split between the validator and other nominators by the ratio of their stake. The NPOS is used in the Polkadot and their parachains.
 \end{itemize}
 
-Now we have immutable finalized data, finalized trustlessly over the network using a consensus algorithm. How can we access the data?
-That is a crucial question. The answer is not very simple. By the nature of the blockchain, we know three types of access \cite{Zheng2017}:
+Once data are finalised through consensus, the next question is who can read from and write to the ledger. Blockchain systems are usually grouped into three access models \cite{Zheng2017}:
 
 \begin{itemize}
   \item permissionless,
@@ -66,12 +65,12 @@ A smart contract is a deterministic program deployed on a blockchain that automa
 Smart contracts are typically written in a Turing-complete language\footnote{In the context of EVM, Bitcoin Script is Turing-incomplete}, compiled to bytecode, and addressed via a unique on-chain identifier once deployed.
 By default, the smart contract code is immutable. However, a proxy contract can be used to change the code of the contract \cite{wood2014ethereum}.
 
-The first blockchain that brought the concept of smart contracts is Ethereum. In high overview, the Ethereum blockchain has an Ethereum Virtual Machine (EVM) that is used to run smart contracts.
+The term \emph{smart contract} predates blockchain, and Bitcoin Script already supported limited contract logic. Ethereum was the first blockchain to support Turing-complete smart contracts at the protocol level. In high overview, the Ethereum blockchain has an Ethereum Virtual Machine (EVM) that is used to run smart contracts.
 Thanks to the Turing completeness of the EVM, when we want to write a smart contract, we can use one of the high-level programming languages like Solidity or Vyper \cite{antonopoulos2018mastering}.
 However, the EVM does not directly execute code from the smart contract language. Instead, the code is compiled into the EVM bytecode.
 To make the computation sustainable, when we want to make a transaction, we need to pay a fee defined by the gas \cite{Leonardos2021, Roughgarden2020}. Gas serves as the fee for miners to include the transaction in a block. Additionally, a tip can be included for faster transaction processing.
-As every code byte requires a fee to be executed, we are trying to make the smart contract as efficient as possible. How to do that?
-To write compelling and safe smart contracts, communities created
+Because every executed byte has a cost, smart-contract development has to account for gas efficiency as well as safety.
+To write reliable smart contracts, communities created
 open-source libraries like OpenZeppelin\footnote{https://github.com/OpenZeppelin/openzeppelin-contracts} or Solmate\footnote{https://github.com/transmissions11/solmate} that can help us to complete our goal.
 
 % Something about open-zeppelin and smart contract security?
@@ -95,7 +94,7 @@ However, its simple architecture brings some caveats that we need to consider. T
 The best feature of the ERC-777 standard is the so-called receive hooks \cite{Dafflon2017}.
 Using ERC-777 instead of ERC-20 prevents us or other smart contracts from accidentally sending other tokens to the contract and bricking them \cite{EIP777}.
 
-Nevertheless, what if we want to create a non-fungible token? ERC-721 is the answer.
+ERC-721 provides the corresponding standard for non-fungible tokens.
 ERC-721 is a standard that allows us to create tokens that are not interchangeable \cite{entrikennon}.
 Often we can use ERC-721 to create a token that represents a tokenized physical object.
 In the previously mentioned car-sharing platform \cite{valastin2019}, we use non-fungible tokens to represent a car.
@@ -132,7 +131,7 @@ However, what if we want to represent more complex assets, such as tokenized hou
 
 Proposed ERC-6551 addresses this gap by creating a so-called smart contract wallet for each ERC-721 item in the collection. Thanks to this token-bound account principle, a token can own other fungible and non-fungible tokens, thereby making a composable entity out of a non-fungible token \cite{EIP6551}. Nevertheless, ERC-6551 is not the first attempt to create composable non-fungible tokens. Valastin et al. created a blockchain-based car-sharing platform using ERC-998 to represent the relationship between a car and its key. The problem with this approach is that this logic has to be implemented inside a smart contract \cite{valastin2019, EIP998}. On the other hand, any ERC-721 token could be upgraded to a token-bound account via ERC-6551 without any modifications.
 
-Along with composability, ERC-6551 provides a perfect substrate for creating AI agents, even though there is no unified standard for obtaining information about particular AI agents and their capabilities. The novel standard ERC-8004 fixes this by extending ERC-721 metadata with additional fields regarding agent capabilities, goals, and relevant information. Why is this needed? To create an analogy with traditional NFTs that contain attributes, agents expose endpoints for services. Additionally, ERC-8004 exposes smart contract calls to attach on-chain ratings to the agent \cite{EIP8004}.
+Along with composability, ERC-6551 provides a useful substrate for creating AI agents, even though there is no unified standard for describing particular AI agents and their capabilities. The draft ERC-8004 (Trustless Agents) proposes a registry for agent discovery and reputation. Agents publish capability descriptions and service endpoints, and other participants can attach on-chain ratings to an agent's identifier \cite{EIP8004}.
 
 % As we look at Table \ref{table:tokencomparison}
 
