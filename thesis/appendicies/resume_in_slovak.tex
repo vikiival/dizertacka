@@ -1,108 +1,77 @@
- \section{Resumé}
- 
- Nasledujúca kapitola slúži slúži ako prostriedok pre ľudí ktorí nerozumejú Anglickému jazyku aby dokázali porozumieť tejto práci.
- Cieľom tejto práce je výskum a vývoj univerzálnej aplikácie na zdieľanie aktív na báze blokchainovej tehcnológie.
- 
- Ako je však možné takéto riešenie overiť? Zadefinovali sme si teda 4 výskumné otázky na ktoré sa snažíme v rámci práce odpovedať
- 
- \begin{itemize}
-  \item Aké je naj efektívnejšie riešenie na vytvorenie univerzálnej architektúry na zdieľanie aktív postavené na Smart kontraktoch?
-  \item Aké sú existujúce riešenie na zdieľanie aktív?
-  \item Vieme navrhnúť architektúru ktorá je efektívna na spotrebu Gas?
-  \item Je možné využiť naše riešenie v rámci decentralizovaných financií?
-\end{itemize}
- 
- 
- Úvod tejto práce začína tézou od Svetového ekonomického fóra že v roku 2030 bude všetko ako služba. To znamená že nebudeme autá vlastniť a taktiež ani byty teda nehnuteľnosti ale všetko budeme S ostatnými ľuďmi. Dá sa to ako šialená predstava ale už dnes je možné použiť zdieľaný bicykel, kolobežku prípadne auto.
- Vďaka tomuto prístupu vieme ušetriť veľa oxidu uhličitého a zvýšiť počet parkovacích miest bez potreby ničenia zelene.
- Taktiež vďaka službám ako je AirBnb je možné prenajať svoju nevyužitú izbu na krátke obdobie a tým si privyrobiť nejaké peniaze. Zdieľaná ekonomika však nie je limitovaná iba na fyzické statky. Príkladom môže byť aplikácia TaskRabbit kde je možné zaplatiť si suseda aby nám postavil skriňu z Ikey. Problémom týchto služieb je však Centralizácia. Naše data sú uložené na serveroch tretích strán a teda zvyšujeme riziko krádeže identity a taktiež sa Vystavujeme tomu že služba nie je dostupná stále. Blokchain rieši tento problém tým že ponúka decentralizovanú databázu ktorá je verejná a nemená.
- 
- Ako sme teda spomínali cieľom tejto práce je navrhnúť univerzálne riešenie zdielania aktív na blockchainovej novej báze.
- 
-Práca je organizovaná nasledovné: kapitola dva analyzuje blok chain novú technológiu deje výhody a nevýhody a taktiež rozoberá tokenizáciu aktív. Kapitola 3 preskúmava pojem zdieľanej ekonomiky a prečo závisí naša budúcnosť aj na tomto princípe. Kapitola 4 analyzuje existujúce riešenia ktoré sa venujú zdieľaniu aktívna a teda porovnáva ich medzi sebou vrátane vyzdvihnutia jednotlivých plusov a mínusov v rámci každého riešenia. Kapitola 5 navrhuje a novú univerzálnu architektúru na zdieľanie aktív vrátane nového odznakového registra. Kapitola 6 rozoberá podrobne implementáciu navrhnutej architektúry ktorá je ďalej testovaná v kapitole 7. Posledná kapitola zhrňuje naše výsledky a kladie dôraz na odpovedanie výskumných otázok.
+\section{Resumé}
 
-Ako sme naznačili kapitola dva sa venuje základom blok chain novej technológie. Vysvetľujeme rozdiel medzi konsenzuálne mi algoritmami dôkaz prácou dôkaz majetkom a nominovaným dôkazom majetku. Následne delíme blokchainy na verejné bolo Privátne a Privátne. Ďalej sa práca venuje Smart kontraktom ktoré spúšťajú svoju biznis sovu logiku na decentralizovaných zariadeniach. So Smart kontrakt o vychádzajú nasledovné štandardy ERC-20, ERC-721, ERC-777 a ERC-1155. Keďže blokchain ako úložisko je drahé porovnávame decentralizované úložiská menovite: IPFS, StorJ a Arweave. V neposlednom rade sa dostávame k analýze tokenového registra.
+Táto kapitola zhŕňa obsah dizertačnej práce v slovenskom jazyku a je určená čitateľom, ktorí nepracujú s anglickým plným textom. Práca sa zaoberá Internetom hodnoty (Internet of Value) a navrhuje architektúru pre agentové rozhodovanie nad heterogénnymi digitálnymi aktívami.
 
-\begin{table}[ht]
-\centering
-\caption{Comparison of token types to token functions}
-\begin{tabular}{ |c|c|c|c|c| } 
-\hline
-        & ERC-20 & ERC-721 & ERC-777 & ERC-1155                                 \\
-\hline
-Payment & Yes    & No      & Yes     & Yes                                      \\
-Utility & Yes    & Yes     & Yes     & Yes                                      \\
-Asset   & Yes    & Yes     & Yes     & Yes                                      \\
-Yield   & Yes    & No      & Yes     & Yes                                       \\
-\hline
-\end{tabular}
-\label{table:tokencomparisonsk}
-\end{table}
+\subsection*{Úvod a motivácia}
 
-Ako vidíme v tabuľke \ref{table:tokencomparisonsk} každý token má 4 základné funkcie: platba, utilita, aktívum a zisk.
+Internet hodnoty je prostredie, v ktorom je možné digitálne reprezentovať, prenášať a vyhodnocovať rôznorodé aktíva. Patria sem nezameniteľné tokeny, produktívne aktíva ako stakované deriváty, hlasovacie a správcovské práva v decentralizovaných organizáciách, finančné nástroje aj prístupové oprávnenia. Blockchain ako infraštruktúra poskytuje vyrovnanie transakcií, nemennosť záznamov a programovateľnú logiku prostredníctvom inteligentných kontraktov. To, čo blockchain neposkytuje, je vrstva, ktorá by pred samotným vykonaním akcie umožnila posúdiť, akú hodnotu má dané aktívum pre konkrétny zámer používateľa alebo decentralizovanej organizácie.
 
-Kapitola 3 analyzuje zdieľanú ekonomiku prečo je dôležitá pri udržateľnosti našej planéty a taktiež k výrobe nepotrebných statkov. Príkladom môžu byť OH v Brazílii kde namiesto toho aby postavili obrovský hotel pre návštevníkov odporučili aby ľudia použili platformu AirBnb vďaka tomu zarobili obyčajný ľudia na olympijských hrach a návštevníci mohli spoznať lepšie kultúru Brazílie. Problémom však takýchto riešení ostáva to že sú centralizované veru pri veľké poplatky niekedy okolo 14\% a taktiež reputáciu ktorou budujeme v jednej službe musíme znova získať ďalšej.
+V praxi to znamená, že aj keď je možné aktívum kúpiť, predať alebo presunúť na úrovni protokolu, rozhodnutie o tom, či má daná transakcia v danom kontexte zmysel, ostáva mimo reťazca a väčšinou bez zachytenej argumentácie. Súčasné riešenia tento problém zužujú na trhovú cenu, hoci hodnota mnohých aktív vyplýva skôr z úžitku, výnosu, správcovskej váhy alebo prístupových práv. Práca preto skúma, ako sformalizovať zámer používateľa ako vstup do hodnotenia a ako naviazať následné akcie na overiteľnú stopu rozhodnutia.
 
-Naše riešenie však nie je prvé. Aktuálne existujú mnohé služby na báze blokchainu, ktoré však dokážu zdierať iba jedno Aktívum. Príkladom takýchto riešení je napríklad ShareRing, Maple Finance a podobne. V závere kapitoly analyzujeme výhody a nevýhody každého spomenutého riešenia.
+Druhým motivačným bodom je rastúca úloha autonómnych a poloautonómnych agentov. Veľké jazykové modely a štruktúrované rozhrania pre orchestráciu nástrojov umožňujú delegovať časť získavania informácií a štruktúrovanej analýzy na softvérových agentov. Súčasne však platí, že agent nedokáže poskytnúť tvrdé záruky o správnosti svojho výstupu. Práca preto skúma, za akých podmienok môže byť agentové odporúčanie použité ako vstup do rozhodnutia o aktívach a aké hranice musia byť vynútené mimo agenta, aby výsledné rozhodnutie zostalo overiteľné a obmedzené politikou.
 
-Dizajn našej architektúry rozobraté v kapitole 5 vychádza z pôvodného riešenia Car sharing ktorý sme nedávno navrhli. V procese návrhu architektúry opisujeme že aplikácia by mala fungovať veľmi jednoducho a teda keď chce používateľ spraviť aplikáciu zdieľanej ekonomiky cez našu architektúru mal by si zvoliť Smart kontrakt pre aktívom pre prístup k aktívu a pre odmenu za používanie aktíva. Navyše vďaka modulárneho riešeniu je možné pridať Aktívum do sveta decentralizovaných financií.
+\subsection*{Teoretické východiská}
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=\columnwidth]{images/Factory.png}
-    \caption{Diagram of creating business using smart contract marketplace}
-    \label{fig:contractmarketplacesk}
-\end{figure}
+Druhá kapitola práce zhŕňa základné pojmy potrebné na pochopenie ďalšieho výkladu. Vysvetľuje princíp blockchainu ako distribuovanej databázy, rolu konsenzuálnych mechanizmov a rozdiel medzi verejnými a povolenými sieťami. Inteligentné kontrakty sú predstavené ako programy, ktoré sa vykonávajú deterministicky na sieti uzlov a ktorých stav je verejne overiteľný. Práca opisuje aj relevantné štandardy tokenov, najmä ERC-20 pre zameniteľné tokeny a ERC-721 a ERC-1155 pre nezameniteľné a kombinované aktíva.
 
-Na obrázku \ref{fig:contractmarketplacesk} vidíme diagram toho ako sa vytvára decentralizované biznis riešenie na blok chain. Používateľ si musí vybrať kontrakt pre aktívu, kontrakt pre prístup a dodatočne avšak nie povinne kontrakt pre odmenu. Kontrakt pre odmenu môže byť vo forme zameniteľných aj nezameniteľných tokenov. Po vybratí všetkých kontraktov ZADA používateľ požiadavku na vytvorenie týchto kontraktov. Následne Smart kontrakt fabrika Vytvorí nové inštancie týchto kontraktov, prepoj ich medzi seba a nastaví používateľa ako majiteľa všetkých 3 kontraktov.
+Osobitná pozornosť je venovaná abstrakcii účtu, ktorá umožňuje vytvárať programovateľné účty so smart kontraktovou logikou namiesto klasických externe vlastnených adries. K týmto témam patria aj peňaženky pre agentov, delegácia podpisu, modulárne podpisové schémy a obmedzenia, ktoré je možné vynútiť na úrovni účtu. Tieto stavebné prvky tvoria základ, na ktorom práca neskôr stavia svoju vrstvenú architektúru a rozhodovaciu logiku.
 
-Následne rozoberáme architektúru od znakového registra ktorý by mal slúžiť na riadenie reputácie medzi jednotlivými aplikáciami v rámci zdieľanej ekonomiky. Výhodou tohto registra je to že na hodnotení jednotlivých účastníkov sa zúčastnil ďalší obyčajný ľudia ktorí vďaka tomu že pridajú svoj posudok získavajú odmenu. Navyše navrhujeme aby aplikácia využívala generovanie kryptografickej peňaženky pomocou emailu a hesla pretože si myslíme že takéto riešenie priláka viacej používateľov.
+\subsection*{Analýza súčasného stavu}
 
-Medzi funkčné charakteristiky naše aplikácie patrí:
+Tretia kapitola sa venuje existujúcim prístupom v oblastiach, ktoré sa s prácou tematicky prekrývajú. V oblasti vyjadrenia zámeru sa rozoberajú intentové protokoly a riešiteľské siete (solvers), ktoré umožňujú používateľovi vyjadriť žiadaný výsledok bez špecifikácie konkrétnej cesty jeho dosiahnutia. Analyzované sú aj systémy delegovaného vykonávania, kde transakciu zostavuje a podáva iná strana ako vlastník aktíva, a riešenia pre tzv. policy wallets, ktoré obmedzujú typy transakcií na úrovni účtu.
 
-\begin{itemize}
-    \item Schopnosť vytvoriť zameniteľný token.
-    \item Schopnosť vytvoriť nemeniteľný token.
-    \item Vytvorenie peňzaženky pomocou emailu a hesla
-    \item Verifikovat používateľa cez decentralizovanú identitu.
-\end{itemize}
-Na konci kapitoly sme sa rozhodli porovnať naše riešenie s ostatnými riešeniami spomenutej v kapitole 4.
+V oblasti agentových systémov sa práca venuje rámcom pre orchestráciu jazykových modelov, protokolu Model Context Protocol, agentovým identitám a reputačným mechanizmom. V oblasti správy decentralizovaných organizácií sú zhrnuté nástroje pre on-chain hlasovanie, správu pokladnice a nástroje pre podporu rozhodovania, ako sú napríklad systémy typu Polkadot OpenGov. V oblasti hodnotenia aktív sa analyzujú metódy oceňovania nezameniteľných tokenov, oceňovania produktívnych aktív cez výnosové modely a viackriteriálne metódy rozhodovania.
 
-Nasledujúca kapitola 6 opisuje implementáciu navrhnutého riešenia. Naše finálne riešenie pozostáva z kontraktov typu fabrika a Abstraktná fabrika ktoré majú za úlohu vytvoriť Smart kontrakty pre Aktívum prístup a odmenu na základe konfiguračného objektu. Konfiguračný objem obsahuje adresu vytvoriť, jeho názov a jeho symbol. 
+Z analýzy vyplývajú tri medzery v súčasnom stave. Prvá medzera je v hodnotení, kde sa hodnota redukuje na trhovú cenu aj v prípadoch, keď to je nevhodné. Druhá medzera je v účtovom modeli, ktorý je orientovaný na autentifikáciu a delegáciu, no nepokrýva vynucovanie politík viazaných na zámer a overiteľný záznam o rozhodnutí. Tretia medzera je v správe pokladníc, kde objem návrhov narastá rýchlejšie, než ich dokážu kvalifikovane posúdiť ľudskí hodnotitelia. Tieto medzery vytvárajú priestor pre rozhodovaciu vrstvu, ktorá prepája zámer, dôkazy, politiku a vykonanie.
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=\columnwidth]{images/abstractfactory.png}
-    \caption{Abstract factory pattern}
-    \label{fig:abstractfactorysk}
-\end{figure}
+\subsection*{Ciele dizertačnej práce}
 
-Diagram \ref{fig:abstractfactorysk} opisuje podstatu nášho riešenia používateľ zavolá funkciu vytvor s konfiguračný mi parametrami na Smart kontakte hlavná fabrika. Na základe konfigurácia tento Smart kontrakt hľadá fabriky od ich adresa mi a testuje či je možné vyprodukovať zvolené Aktívum teda či je to Aktívum ako také alebo prístupový token. Ak je to teda možné obe fabriky vyprodukujú inštancie zvolených kontraktov a nastavia Maťa kontraktu na pôvodného volajúceho
+Cieľom práce je navrhnúť a overiť architektúru, ktorá umožňuje agentové rozhodovanie nad rôznorodými aktívami v prostredí Internetu hodnoty tak, aby bolo zachované hodnotenie podľa zámeru, dohľadateľnosť dôkazov, schválenie človekom a obmedzenia politiky na úrovni účtu. Hlavným prínosom je formálny model Intent-Conditioned Value Projection (ICVP), v ktorom zámer používateľa alebo organizácie pôsobí ako projekcia nad priestorom heterogénnych dôkazov. Zámer neurčuje len dôležitosť dimenzií dostupnosti, trvácnosti a úžitku, ale aj to, čo tieto dimenzie pre dané aktívum a danú akciu znamenajú.
 
-V kapitole 7 sa zaoberáme testovaním implementovaného riešenia. Na testovanie sme použili zariadenie MacBook pro s architektúrou M1 a 16GB RAM. Pre porovnanie efektívnosti riešenia sme porovnali našu novú architektúru s architektúrou v aplikácii Car sharing. 
+Práca formuluje tri výskumné otázky. Prvá sa pýta, aký formálny model dokáže reprezentovať zámer ako projekciu nad dôkazmi a produkovať overiteľné rozhodnutia. Druhá sa pýta, akou metódou je možné tento model uviesť do prevádzky v agentovom systéme so zachovaním stopy dôkazov a schválenia človekom. Tretia otázka skúma, do akej miery navrhnutý prístup zlepšuje kvalitu rozhodnutia oproti zúženým variantom, ktoré z modelu odoberajú časť informácie. Práca vymedzuje aj dve bezpečnostné vlastnosti, a to úplnosť dôkazov pri kladnom rozhodnutí a viazanosť autorizácie transakcie na platnú stopu rozhodnutia.
 
-\begin{table}[ht!]
-\centering
-\caption{Comparison of gas effectivness between car-sharing and new architecture}
-\begin{tabular}{ |m{9em}|c|c|c| } 
-\hline
-(price in gas) & Car-sharing  & New architecture & Change (\%)  \\
-\hline
-Deploy set of contracts & 5207500  & 4688444 &  9.97 \\
-\hline
-Create one asset & 444015  & 361138 &  18.66 \\
-\hline
-Rent one asset & 209244  & 194899 &  6.85 \\
-\hline
-Change implementation & 5207500  & 3793998 &  27.14 \\
-\hline
-\end{tabular}
-\label{table:gassk}
-\end{table}
+\subsection*{Návrh riešenia}
 
-V tabuľke je možné vidieť že nová architektúra je efektívnejšia a a teda sa nám podarilo ušet. iť v priemere 15,65\%. Ako je to možné? V prvom rade sme sa zbavili funkcií ktoré sú súčasťou knižnice OpenZeppelin a boli pre nás nepotrebné. Navyše sme sa zbavili súčasť ti kontroly kódu ktoré boli nepotrebné a len boli náročné na Gas.
+Návrh je najrozsiahlejšia časť práce. Architektúra má štyri vrstvy. Lokálna vrstva zodpovedá za interakciu s používateľom, za prijatie zámeru a za schválenie navrhnutých akcií. Dátová a dôkazová vrstva zhromažďuje informácie potrebné na hodnotenie. Agentová vrstva vykonáva samotné rozhodovanie a prípravu transakcie. On-chain vrstva vykonáva schválené akcie a vynucuje politiku na úrovni účtu.
 
-Keď ideš aj chceme zaručiť aby naše kontrakty boli bezpečne vykonaj sme statickú analýzu kódu použitím znakov v Vuitton kóde vieme nájsť bezpečnostné diery. Tieto testy sme bežali pomocou knižnice Mythril od firmy Consensys. Okrem toho sme zabezpečili pokrytie kódu jednotkovými testami, rozbehli na výbornú.
+Jadrom modelu je formalizácia zámeru ako projekcie. Používateľ alebo organizácia vyjadrí, čo chce v danej situácii dosiahnuť. Zámer sa premietne do dôkazového priestoru a vyberá z neho len tie atribúty aktíva, ktoré sú pre danú akciu relevantné. Na základe tohto výberu sa vytvoria tri dimenzie hodnotenia, ktoré model označuje ako dostupnosť, trvácnosť a úžitok. V kontexte nezameniteľného tokenu môže dostupnosť znamenať likviditu na trhu, trvácnosť stabilitu kolekcie a úžitok prístup k danej komunite alebo službe. V kontexte stakovaného aktíva môže dostupnosť znamenať možnosť okamžitej výplaty, trvácnosť bezpečnosť validátorov a úžitok očakávaný výnos. V kontexte správcovského návrhu môže dostupnosť znamenať pripravenosť pokladnice, trvácnosť dlhodobý dopad návrhu a úžitok prínos pre verejné statky.
 
-Či je predikcia Svetového ekonomického fóra o tom ako bude vyzerať svet v roku 2030 pravdivá alebo nepravdivá zdieľaná ekonomika je súčasťou nášho života už dnes. Namiesto toho aby sme si kúpili auto s cenou kov viac ako 20 000 EUR si vieme vozidlo požičať autopožičovne alebo od suseda ktorému prispejeme na poistku a namiesto hotelov vieme využiť zdieľanú izbu v AirBnb.
-Zdieľaná ekonomika prináša mnoho či už finančných alebo aj ekologických výhod. Cieľom tejto práce bolo priniesť prvé univerzálne architektonické riešenie zdieľanie aktív na báze blok chainu. Základe podrobne analýzy zisťujeme že použiť blok chain namiesto tradičného riešenia pridáva množstvo Benefi tou ako sú zvýšená bezpečnosť a Nemennosť dať taktiež blok chain prináša stopercentnú funkčnosť stále oproti tradičným cloudovým riešeniam. 
+Aby bolo možné rozhodnutie overiť, model zavádza pojem požadovaného dôkazu (RequiredEvidence). Pre danú triedu aktíva a daný zámer je vopred určené, aké typy dôkazov musia byť k dispozícii, aby bolo možné rozhodnúť kladne. Ak dôkazy chýbajú alebo nie sú overiteľne získané, rozhodnutie nemôže byť kladné a systém odporúča rozhodnutie odložiť alebo zamietnuť. Takto je definovaná vlastnosť úplnosti dôkazov pri kladnom rozhodnutí.
+
+Výsledkom hodnotenia je stopa rozhodnutia (valuation trace). Ide o štruktúrovaný artefakt, ktorý zaznamenáva zadaný zámer, identifikátor aktíva, vybraté dôkazy aj s ich pôvodom, hodnoty inštanciovaných dimenzií, finálne rozhodnutie z množiny pokračovať, odložiť alebo zamietnuť, a metadáta potrebné na audit. Stopa nie je voľný textový popis, ale validovateľný objekt, voči ktorému je možné spustiť deterministické kontroly. Stopu je možné archivovať mimo reťazca aj v komprimovanej forme na reťazci ako záväzok, takže neskorší audit dokáže overiť, že rozhodnutie skutočne vychádzalo z konkrétnych dôkazov v konkrétnom čase. Tento prístup oddeluje rozsiahle dôkazové dáta od relatívne malého záväzku, ktorý je potrebné držať v reťazci.
+
+Schémy požadovaných dôkazov sú navrhnuté tak, aby boli rozšíriteľné. Pre novú triedu aktív stačí pridať definíciu, aké atribúty sú pre daný zámer povinné, aké voliteľné a aké zdroje sa považujú za prijateľné. Validátor pracuje so schémou ako s deklaratívnym popisom a nevyžaduje úpravu vlastnej logiky. To umožňuje, aby organizácia postupne pokrývala nové typy rozhodnutí bez zásahu do jadra systému. Práca uvádza schémy pre tri skúmané triedy a opisuje, ako boli iteratívne dolaďované na základe expertnej spätnej väzby.
+
+Agentová vrstva pracuje s viacerými spolupracujúcimi agentmi. Jeden agent vyhľadáva a získava dôkazy zo zdrojov pripojených cez Model Context Protocol. Druhý agent na základe zámeru a dôkazov navrhuje hodnoty dimenzií a finálne rozhodnutie. Tretí agent zostavuje návrh transakcie tak, aby zodpovedal stope rozhodnutia a obmedzeniam politiky účtu. Validátor mimo agentovej vrstvy potom deterministicky kontroluje, či je stopa kompletná, či sú dôkazy v poriadku a či navrhnutá transakcia zodpovedá rozhodnutiu. Až po úspešnej validácii sa návrh predloží človeku na schválenie.
+
+On-chain vrstva je založená na primitíve, ktoré práca označuje ako NFT ako účet (Non-Fungible Token as Account, NFTAA). Aktíva alebo skupiny aktív sú spravované cez programovateľný účet reprezentovaný nezameniteľným tokenom. Účet má pripojenú politiku, ktorá definuje, aké typy transakcií sú povolené, kto ich môže schvaľovať a aké stopy rozhodnutia sú prijímané ako podklad. Účet pri každej akcii kontroluje, či existuje platná stopa, či bola schválená ľudským potvrdením a či transakcia spadá do povolenej politiky. Takto je definovaná druhá bezpečnostná vlastnosť, teda viazanosť autorizácie na stopu.
+
+Keďže účet je sám nezameniteľný token, je možné ho prenášať, dediť, prenajímať alebo zveriť do správy bez toho, aby sa stratila pripojená politika a história rozhodnutí. Pre organizáciu to znamená, že spravovanie pokladnice môže byť rozdelené medzi viacero účtov s rôznymi politikami, pričom každý účet má jasne vymedzený rozsah pôsobnosti. Pre používateľa to znamená, že jeden účet môže obsahovať skupinu aktív viazaných na konkrétny cieľ, napríklad dlhodobé sporenie, krátkodobé obchodovanie alebo účasť v správe konkrétneho protokolu. Tieto kontexty sa medzi sebou nemiešajú a každý má vlastnú politiku schvaľovania.
+
+Súčasťou návrhu je aj model hrozieb. Práca explicitne pomenúva, čo systém nesľubuje. Nesľubuje, že jazykový model je vždy správny, že experti predstavujú absolútnu pravdu, ani že agent má autonómne kontrolovať aktíva používateľa. Sľubuje, že kladné rozhodnutie je možné len pri prítomnosti požadovaných dôkazov, že transakcia môže byť autorizovaná len pri platnej stope a že politika účtu obmedzuje rozsah povolených akcií. Toto rozdelenie zodpovednosti medzi agenta, validátora, človeka a on-chain vrstvu je zámerné a tvorí základ bezpečnostných vlastností práce.
+
+\subsection*{Experimentálne overenie a hodnotenie}
+
+Hodnotenie nie je založené na jednej metrike. Kombinuje deterministickú validáciu stopy, expertný referenčný protokol a porovnanie troch variantov modelu. Plný variant zodpovedá navrhnutej projekcii zámeru s úplnými dimenziami. Prvý zredukovaný variant používa len jednu dominantnú dimenziu rozhodnutia, čo zodpovedá rozšírenej praxi redukcie hodnoty na trhovú cenu. Druhý zredukovaný variant ponecháva všetky tri dimenzie, ale s pevnými váhami a bez projekcie zámeru, čím zachytáva prípady, keď organizácia používa fixnú rubrikovú metodiku.
+
+Hodnotenie prebehlo v troch režimoch, ktoré pokrývajú rozdielne triedy aktív. Prvý režim sa týka kolekcie Pudgy Penguins a reprezentuje rozhodnutia o nezameniteľných tokenoch, kde sa miešajú trhové, komunitné a prístupové aspekty. Druhý režim sa týka stakovaného Etheru (stETH) a reprezentuje rozhodnutia o produktívnych aktívach s výnosom, výplatným profilom a rizikom protokolu. Tretí režim sa týka správcovských návrhov v sieti Polkadot OpenGov a reprezentuje rozhodnutia o pridelení prostriedkov pokladnice. Spolu pokrývajú dvanásť úloh, ktoré boli pre každý variant modelu spustené nezávisle.
+
+Expertný protokol slúži ako referenčný bod. Traja experti nezávisle vyhodnotili tie isté úlohy a poskytli rozhodnutie, dôvody a odhad istoty. Ich rozhodnutia neslúžia ako absolútna pravda, ale ako referencia, voči ktorej sa hodnotí relevantnosť dôkazov, súlad rozhodnutia a kvalita argumentácie. Práca pri tom dôsledne odlišuje, čo môže experimentálne overenie dokázať a čo nie. Overenie netvrdí, že navrhnutý systém je univerzálne lepší ako človek. Tvrdí, že plný variant modelu zachováva viac relevantných dôkazov, produkuje stopy, ktoré prejdú validáciou, a v skúmaných režimoch dosahuje rozhodnutia bližšie k expertnej referencii než zredukované varianty.
+
+Metriky hodnotenia pokrývajú niekoľko rovín. Na rovine rozhodnutia sa sleduje zhoda finálneho výstupu s expertnou referenciou. Na rovine dôkazov sa sleduje, aký podiel expertmi označených relevantných dôkazov skutočne figuruje v stope, a naopak, aký podiel získaných dôkazov experti označili za podstatné. Na rovine argumentácie sa sleduje, či zdôvodnenie vo vyhotovenej stope odkazuje na konkrétne dôkazy a či neobsahuje tvrdenia bez podkladu. Na rovine validácie sa sleduje, aký podiel vygenerovaných stôp prejde deterministickou kontrolou bez zásahu človeka. Tieto roviny sa interpretujú spolu, pretože samostatne by mohli vytvárať skreslený obraz.
+
+Súčasťou hodnotenia je aj analýza robustnosti a nákladov. Robustnosť bola testovaná zmenou formulácie zámeru pri zachovaní jeho významu a sledovaním stability rozhodnutia. Náklady boli merané jednak v podobe spotrebovaných tokenov modelu pri behu agentov, jednak v podobe gas nákladov pri vykonaní transakcií cez NFTAA. Z výsledkov vyplýva, že réžia vrstvy rozhodovania je zvládnuteľná v kontexte typických aktívnych operácií a že najväčší podiel nákladov nesie získavanie a validácia dôkazov, nie samotná on-chain logika. Práca tieto zistenia interpretuje opatrne a vyhýba sa zovšeobecneniam mimo skúmaných režimov.
+
+Z porovnania troch variantov modelu vyplývajú konzistentné zistenia naprieč režimami. Variant s jednou dimenziou dosahuje rozumné výsledky tam, kde je rozhodnutie skutočne dominantne určené jedným faktorom, napríklad pri jednoduchom predaji za trhovú cenu. V zložitejších rozhodnutiach, kde sa miešajú úžitok, riziko a dlhodobý dopad, však tento variant stráca informáciu a častejšie sa odchyľuje od expertnej referencie. Variant s pevnými váhami funguje lepšie pri rutinných úlohách v rámci jednej triedy aktív, no zlyháva pri zmene zámeru, keď by tie isté dôkazy mali mať iný význam. Plný variant si zachováva schopnosť reagovať na zmenu zámeru a v skúmaných úlohách najlepšie kombinuje pokrytie dôkazov a kvalitu argumentácie.
+
+Reprodukovateľnosť hodnotenia zabezpečujú priložené artefakty. Patria k nim schémy požadovaných dôkazov pre jednotlivé triedy aktív, validátor stopy, datasety úloh a expertné anotácie. Tieto artefakty umožňujú zopakovať hodnotenie aj porovnanie s budúcimi variantmi modelu alebo s inými agentovými systémami.
+
+\subsection*{Záver}
+
+Práca prepája hodnotenie podľa zámeru, agentové rozhodovanie, overiteľnú stopu a obmedzené vykonanie na úrovni účtu. Model Intent-Conditioned Value Projection chápe zámer ako projekciu nad dôkazmi a inštanciuje dostupnosť, trvácnosť a úžitok podľa triedy aktíva a kontextu akcie. Architektúra prevádza tento model do agentového systému a primitívum NFT ako účet viaže on-chain autorizáciu na platnú stopu rozhodnutia. Hodnotenie v troch režimoch potvrdzuje prínos plného variantu oproti zredukovaným verziám.
+
+Práca má niekoľko obmedzení. Hodnotenie pokrýva tri triedy aktív a vychádza z konkrétnych zdrojov dôkazov, takže závery sa nedajú bez ďalšieho overenia preniesť na ľubovoľné aktívum alebo doménu. Spoľahlivosť agentov závisí od kvality jazykového modelu a od stability nástrojov, ktoré sa v čase menia. Politiky účtu pokrývajú typické prípady, no v reálnej prevádzke ich treba doladiť pre konkrétnu organizáciu. Expertná referencia vychádza z troch nezávislých posudzovateľov, čo zachytáva bežnú rozptylovosť názoru, ale nenahrádza dlhodobé pozorovanie v produkčnej prevádzke.
+
+Budúca práca môže pokračovať vo viacerých smeroch. Patrí k nim rozšírenie schém požadovaných dôkazov na ďalšie triedy aktív, integrácia s ďalšími on-chain prostrediami, hlbšie skúmanie ľudského schvaľovania pri väčšom objeme rozhodnutí a štúdium dlhodobého správania systému pri zmenách trhových podmienok. Zaujímavým smerom je aj skúmanie agregácie viacerých nezávislých agentov, ktorých výstupy by sa porovnávali pred tým, ako vznikne finálna stopa, čo by mohlo zlepšiť robustnosť rozhodnutia v hraničných prípadoch. Ďalším smerom je prepojenie navrhnutej rozhodovacej vrstvy s formálnou verifikáciou politík účtu, aby bolo možné dokázať vlastnosti politiky ešte pred jej nasadením.
+
+Hlavným metodologickým príspevkom práce je rozdelenie zodpovednosti medzi softvérového agenta, validátor, človeka a on-chain vrstvu. Agent navrhuje, validátor kontroluje, človek schvaľuje a účet vynucuje. Tento prístup môže slúžiť ako východisko pre ďalší výskum aj pre praktické nasadenie v decentralizovaných organizáciách a používateľských peňaženkách.
