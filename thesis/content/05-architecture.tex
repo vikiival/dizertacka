@@ -1,64 +1,186 @@
 \section{Design}
 \label{sec:design}
 
-This chapter introduces key concepts to enhance the understanding and technological framework of the Internet of Value (IoV). We propose a new architectural approach to increase efficiency in asset sharing within blockchain ecosystems using agentic systems. This approach is in accordance with our targets discussed in Chapter \ref{sec:aims}.
-While our evaluation targets EVM-compatible environments and Polkadot, the architectural concepts presented here are designed to be blockchain-agnostic and can be adapted to other ecosystems such as Solana or Cosmos. As the Internet of Value is a broad concept, our domain knowledge focuses on AI agents, value creation, and sharing.
+This chapter presents the formal model and design method for Intent-Conditioned Value Projection, addressing the research questions and challenges set out in Chapter \ref{sec:aims}. We first state the threat model that the design has to contain, so that later safety claims can be read against a specific set of adversaries and failure modes. We then define ICVP as a decision model that treats stated user or governance intent as a projection over heterogeneous Internet of Value evidence spaces, and we state the two safety properties that link the model to the execution boundary. We then describe the agentic method that carries the model out, and the architecture that hosts it, including the account-level enforcement primitive (NFTAA) that realises trace-gated authorisation. The architecture follows from the formal model, not the other way round.
 
-\subsection{Asset valuation using agentic systems}
+\subsection{Threat Model and Trust Assumptions}
+\label{sec:threat-model}
 
-Value is a concept that is difficult to define in general terms, as it is subjective and context-dependent. As we mentioned in the Chapter \ref{sec:aims}, Lohmer et al. \cite{Lohmer2024} developed a comprehensive definition and framework of IoV through expert interviews. From their research, they concluded on a multidimensional notion of value that encompasses economic worth, utility or access rights, and Ethical and sustainability contributions.
+The architecture combines components with very different trust properties. The on-chain layer is deterministic and inspectable. The validator and the schemas are authored artefacts under our control. The language model that drives the proposer is opaque and replaceable. External evidence sources are partially trusted and can fail or be manipulated. Human approvers are trusted to authorise their own actions but are not infallible. A defensible safety story therefore has to name the adversaries and failure modes that the design contains, identify which components are trusted and which are not, and connect each row to the mechanism that contains it. We do this in Table \ref{tab:threat-model}. The safety properties in Section \ref{sec:proof-targets} are stated against this table, and each row is referenced from at least one invariant or check.
 
-Based on these propositions, we have defined value as a function of availability, durability, and utility.
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{|c|p{3.4cm}|p{3.0cm}|p{6.0cm}|}
+\hline
+\textbf{\#} & \textbf{Threat} & \textbf{Trust status of affected component} & \textbf{Containing mechanism} \\
+\hline
+T1 & Poisoned evidence (a source returns crafted content intended to flip the decision) & Evidence sources are untrusted & Schema requires multi-source corroboration and provenance per category. Validator rejects traces that rely on a single uncorroborated source for a decision-critical category. Hard constraints catch out-of-range values. \\
+\hline
+T2 & Stale evidence (data that was fresh when retrieved but is no longer fresh at authorisation time) & Evidence sources are untrusted, validator is trusted & Per-category freshness TTLs in the \textit{RequiredEvidence} schema, evaluated at authorisation time $t$, not at trace construction time. Section \ref{sec:proof-targets} states this as part of the Trace-Gated Authorisation property. \\
+\hline
+T3 & Prompt injection into the proposer (instructions embedded in retrieved evidence attempt to override the proposer's role) & Language model and retrieved text are untrusted & Proposer cannot emit a final decision. It can only emit a trace structured to the validator schema. Out-of-schema fields and free-text recommendations are dropped. The validator performs the gating check on structured fields, not on natural-language output. \\
+\hline
+T4 & Malicious or vague intent (a stated intent that does not correspond to the action being prepared, or that is too underspecified for a confident decision) & Intent comes from a trusted human but is not assumed correct & Intent is recorded as a structured input that drives the projection $P_i$. Underspecified intents fail schema requirements and force \textit{defer}. The transaction preparation step checks that the prepared transaction matches the trace, which in turn is bound to the recorded intent. \\
+\hline
+T5 & Manipulated oracles (price or risk feeds report manipulated values) & Oracles are untrusted & Schema specifies the oracle set per category, requires cross-feed agreement within a tolerance for decision-critical categories, and records each feed's provenance in the trace. NFTAA policy can additionally cap notional per action. \\
+\hline
+T6 & Incomplete traces (a trace that omits a required evidence category, or whose provenance is missing) & Proposer is untrusted, validator is trusted & Evidence-Completeness Safety in Section \ref{sec:proof-targets}. The validator refuses a confident \textit{proceed} unless \textit{RequiredEvidence}$(i, a) \subseteq E$ and provenance is recorded for every entry in $E$. \\
+\hline
+T7 & Transaction mismatch (a candidate transaction is submitted that does not correspond to the approved trace) & Transaction preparation is trusted-but-verified, signer environment is untrusted & The approval signature covers both the trace hash and the transaction hash. NFTAA verifies that the submitted transaction hashes to the value bound to the approval, and rejects otherwise. \\
+\hline
+T8 & Compromised agent process (the off-chain agent process is corrupted and emits arbitrary traces) & Off-chain runtime is untrusted at the boundary & Authority does not flow through the agent. The agent cannot authorise action. Only a human-approved, validator-signed trace bound to a policy-compliant transaction settles on-chain. A compromised agent can produce invalid traces, which the validator and NFTAA reject. \\
+\hline
+T9 & Policy bypass at NFTAA (an attempt to settle a value-relevant action without passing the on-chain policy) & NFTAA contract is trusted & The NFTAA contract is the sole settlement path for value-relevant actions of the account, and enforces the trace-gated authorisation checks of Section \ref{sec:proof-targets}. Direct asset transfers that bypass NFTAA are out of scope of the account's policy and out of scope of the safety claims. \\
+\hline
+T10 & Schema authorship attack (a weakened or replaced \textit{RequiredEvidence} schema lowers the bar for confident decisions) & Schemas are trusted authored artefacts & Schemas are versioned and content-addressed. The validator signs the trace jointly with the schema version and schema hash. NFTAA only accepts traces whose schema version is in a recognised set. Replacing the schema therefore breaks the signature rather than silently weakening the bar. \\
+\hline
+\end{tabular}
+\caption{Threat model for the ICVP architecture. Each row names a threat, the trust status of the affected component, and the mechanism that contains it. Safety properties in Section \ref{sec:proof-targets} reference the rows they depend on.}
+\label{tab:threat-model}
+\end{table}
 
-Therefore, we define the value $V$ of an asset $a$ as a weighted function of three independent components:
+Three trust assumptions stand outside the table because they bound the model rather than appear as rows in it. We assume that at least one human approver acts honestly for the actions submitted through their account, that the validator key is held in a way consistent with its documented model in Section \ref{sec:onchain-layer}, and that the consensus layer of the host chain is not under active attack at the moment of settlement. We do not assume that the language model is correct, that any individual evidence source is honest, that the off-chain runtime is uncompromised, or that intents are well-posed.
 
+\subsection{Intent-Conditioned Value Projection}
+\label{sec:icvp}
+
+Value in the Internet of Value is heterogeneous and context-dependent. Lohmer et al. \cite{Lohmer2024} reach a comparable conclusion through expert interviews, arguing that value in this setting cannot be reduced to market price and instead spans economic worth, utility or access rights, and ethical and sustainability contributions. The same observation appears whenever we look across asset classes. A Pudgy Penguin held for community access is not valued in the same terms as the same Pudgy Penguin held for short-term resale. stETH evaluated as productive collateral is not valued in the same terms as stETH evaluated for liquidity exit during a peg dislocation. A Polkadot OpenGov proposal evaluated under public-resource stewardship is not valued in the same terms as a private acquisition. In each case the asset is the same. The intent is different, and so are the evidence that matters and the way Availability, Durability, and Utility are interpreted.
+
+We therefore propose Intent-Conditioned Value Projection (ICVP) as the decision model. ICVP treats stated user or governance intent as a projection over heterogeneous Internet of Value evidence spaces. The projection determines what evidence is relevant, after which Availability, Durability, and Utility are instantiated for the asset class and the action context. ICVP does not require predefined asset-specific value formulas for previously unseen asset classes. It requires an intent-specific projection over available evidence and an intent-specific instantiation of the three valuation dimensions on top of that projection.
+
+Let $a$ be an asset, proposal, or value-relevant object in the Internet of Value. Examples include a non-fungible token, a liquid staking token such as stETH, a treasury proposal, a tokenised claim, an access right, a redemption right, or a public-good funding request. Let $E$ be the available evidence set for $a$. Evidence in this setting can include price and liquidity, supply and rarity, metadata storage and contract mutability, governance and access rights, redemption rights, yield source, protocol risk, counterparty risk, compliance status, public-good contribution, team and delivery history, audit reports, on-chain footprint, and provenance information. We write $F(a, E)$ for the full feature space derived from $a$ and $E$.
+
+Let $i$ be a stated intent. Intent in ICVP is not an attempt to model human psychology. It is a declared computational input that constrains what evidence is relevant and how the valuation dimensions are instantiated. Examples include long-term holding, speculative trading, collateralisation, functional or community access, liquidity exit, protocol-risk evaluation, treasury stewardship, and so on. Let $P_i$ be an intent-specific projection that selects and transforms the parts of $F(a, E)$ that are relevant under $i$:
 \begin{equation}
-V(a) = w_A \cdot A(a) + w_D \cdot D(a) + w_U \cdot U(a)
+F_i(a, E) = P_i(F(a, E)).
 \end{equation}
+Let $\Phi_i$ instantiate the three valuation dimensions from the projected evidence:
+\begin{equation}
+\Phi_i(F_i(a, E)) = (A_i, D_i, U_i),
+\end{equation}
+where $A_i$, $D_i$, and $U_i$ are the intent-instantiated Availability, Durability, and Utility for $a$ under $i$. The decision signal is then computed by an intent-specific aggregation:
+\begin{equation}
+V_i = g_i(A_i, D_i, U_i).
+\end{equation}
+A common operational choice for $g_i$ is the convex combination
+\begin{equation}
+g_i(A_i, D_i, U_i) = w_A(i) \cdot A_i + w_D(i) \cdot D_i + w_U(i) \cdot U_i,
+\label{eq:adu-aggregation}
+\end{equation}
+with weights $w_A(i), w_D(i), w_U(i) \in [0, 1]$ and $w_A(i) + w_D(i) + w_U(i) = 1$, and with each $A_i, D_i, U_i \in [0, 10]$ for interpretability. We use this aggregation in the implementation, but we treat it as an aggregator over already intent-instantiated dimensions, not as the value model itself. Aggregation alone, without the projection $P_i$ and the instantiation $\Phi_i$, reduces to a fixed-weight scoring heuristic of the kind we evaluate against as a baseline in Chapter \ref{sec:evaluation}.
 
-where:
-\begin{itemize}
-    \item $A(a) \in [0, 10]$ represents the availability (scarcity) of the asset
-    \item $D(a) \in [0, 10]$ represents the durability (resilience and longevity) of the asset
-    \item $U(a) \in [0, 10]$ represents the utility (functional benefits) of the asset
-    \item $w_A, w_D, w_U \in [0, 1]$ are intent-dependent weights satisfying $w_A + w_D + w_U = 1$
-\end{itemize}
+The full output of ICVP for asset $a$ under intent $i$ given evidence $E$ is
+\begin{equation}
+\textsc{ICVP}(a, i, E) = (F_i, A_i, D_i, U_i, V_i, d, \tau),
+\end{equation}
+where $d \in \{\textit{proceed}, \textit{defer}, \textit{decline}\}$ is the decision and $\tau$ is the auditable valuation trace. The labels are interpreted operationally. \textit{Proceed} means the projected evidence supports the action under the stated intent. \textit{Defer} means the projected evidence is missing, stale, or conflicting, or confidence is below threshold. \textit{Decline} means the evidence does not justify the action or a hard constraint blocks it. The trace $\tau$ records the stated intent, the selected evidence with its provenance, the deprioritised evidence where relevant, the intent-specific interpretation of $A_i$, $D_i$, and $U_i$, the scores or qualitative judgements, the confidence, the hard constraints, the decision, and a link to any prepared transaction. The trace is a structured artefact, intended for inspection rather than for narrative consumption. A deterministic validator checks it for required evidence, provenance, and policy compatibility before any human approval step.
 
-Each component is normalized to a 10-point scale to provide interpretable scores that can be compared across heterogeneous asset types. The weights are dynamically adjusted based on user intent, which we formalize later in the section.
+In our setting Availability, Durability, and Utility remain the practical valuation taxonomy across asset classes, but their content depends on intent. Availability for a Pudgy Penguin under speculative trading involves floor price, listing depth, recent sales, and market liquidity. Availability for the same Pudgy Penguin under community access involves access rights, membership scarcity, and the existence of comparable communities reachable through other tokens. Availability for stETH under collateralisation involves DeFi liquidation depth and accepted collateral lists rather than NFT-style rarity. Availability for a treasury proposal under public-resource stewardship involves whether comparable contributions already exist, whether alternative teams can deliver the work, and the opportunity cost of the requested treasury allocation. Durability for an NFT held long-term centres on metadata storage guarantees, smart-contract immutability, and ecosystem resilience. Durability for stETH held long-term centres on validator decentralisation, slashing exposure, and protocol governance stability. Durability for a treasury proposal centres on maintainability of the deliverables, sustainability of the funded team, and stability of dependencies. Utility for an NFT under functional use centres on access, brand, and in-product utility. Utility for stETH under productive use centres on yield source, composability with lending and trading venues, and reliability of the redemption path. Utility for a treasury proposal under stewardship centres on ecosystem benefit, public-good impact, and strategic alignment. The valuation taxonomy is shared. The projection and the instantiation are not.
 
-In terms of availability, $A(a)$ quantifies how abundant or scarce an asset is in its environment. The circulating supply, maximum supply, and inflationary or deflationary processes all affect the availability of fungible tokens. The size of the entire collection, the rarity of certain characteristics, and the presence of processes like minting or burning capabilities that might change future supply all affect the availability of non-fungible tokens.
+The agent in this architecture is not the source of value. It is an evidence interpreter and trace proposer. It maps asset features and stated intent into an auditable valuation trace, and a deterministic validator together with human approval and account-level policy decide whether the trace can authorise an on-chain action. Section \ref{sec:proof-targets} states the safety properties that link the formal model to the execution boundary. The Internet of Value makes assets transferable. ICVP makes their value interpretable under intent.
 
-The second component of value is durability $D(a)$. The durability of an asset is determined by its longevity and resilience. The longevity of an asset is the length of time it remains in existence. The resilience of an asset is its ability to withstand shocks and stresses.
-Unlike physical assets, where durability depends on material quality and environmental conditions, the durability of a digital asset is determined by three factors: metadata storage guarantees, smart contract immutability, and ecosystem resilience.
+\subsubsection{Formal proof targets}
+\label{sec:proof-targets}
 
-Durability is critical for long-term holding, institutional custody, or any scenario where asset integrity over time is essential. An NFT with high durability can be confidently used as collateral, transferred across generations, or integrated into legal contracts, as its properties are guaranteed to remain stable.
+The formal scope of this thesis is deliberately narrower than a theory of value. We do not attempt to prove that an underlying language model is correct, that a \textit{proceed} decision is objectively true, or that expert evaluators are absolute ground truth. We instead target two safety properties that connect the ICVP decision model to the execution boundary enforced by NFTAA in Section \ref{sec:onchain-layer}.
 
-So what is the utility of an asset? The utility $U(a)$ of an asset captures the functional benefits an asset provides to its holder.
-Unlike availability and durability, which have relatively objective measurement criteria, utility is inherently subjective and context-dependent.
+The first property is \emph{Evidence-Completeness Safety}. Let $\theta$ be the confidence threshold for confident decisions and let $\textit{RequiredEvidence}(i, a)$ denote the intent-specific evidence required for asset $a$ under intent $i$. Then
+\begin{equation}
+\textsc{Decision}(a, i, E) = \textit{proceed} \;\wedge\; \textsc{Confidence}(a, i, E) \geq \theta \;\Longrightarrow\; \textit{RequiredEvidence}(i, a) \subseteq E \;\wedge\; \textsc{Provenance}(E).
+\end{equation}
+The contrapositive is the operationally useful form. If the required intent-specific evidence is missing, the system must not return a confident \textit{proceed}. It must lower confidence, defer, or decline. Under this property the valuation trace functions as a checked artefact rather than as a narrative. This property contains threats T1, T3, and T6 of Table \ref{tab:threat-model}, in the sense that poisoned evidence, prompt-injection attempts that bypass the trace structure, and incomplete traces cannot lead to a confident \textit{proceed}.
 
-For non-fungible tokens, utility ranges from aesthetic enjoyment (digital art) to functional access (event tickets, membership passes) to productive use (in-game items, intellectual property licenses).
+The second property is \emph{Trace-Gated Authorisation}. A value-relevant transaction $\textit{tx}$ submitted at authorisation time $t$ can be authorised only if there exists a trace $\tau$ such that
+\begin{equation}
+\begin{aligned}
+\textsc{Authorise}(\textit{tx}, t) \;\Longrightarrow\; \exists \tau:\; & \textsc{ValidTrace}(\tau) \,\wedge\, \textsc{CompleteEvidence}(\tau, i) \,\wedge\, \textsc{Decision}(\tau) = \textit{proceed} \\
+& \wedge\, \textsc{FreshEvidence}(\tau, t) \,\wedge\, \textsc{NotExpired}(\tau, t) \\
+& \wedge\, \textsc{TxMatches}(\textit{tx}, \tau) \,\wedge\, \textsc{PolicyAllows}(\textit{tx}, \tau).
+\end{aligned}
+\end{equation}
+The freshness predicates are evaluated at the authorisation moment, not at the trace-construction moment. $\textsc{FreshEvidence}(\tau, t)$ holds iff, for every evidence category $c$ used by $\tau$, the recorded acquisition timestamp $\textit{acq}_c$ satisfies $t - \textit{acq}_c \leq \textit{TTL}_c$, where $\textit{TTL}_c$ is the per-category time-to-live recorded in the \textit{RequiredEvidence} schema used by $\tau$. Per-category TTLs are stated in orders of magnitude that match the underlying signal: market and liquidity data in minutes, oracle and peg readings in minutes, protocol-risk signals such as audit status or validator-set composition in days, and team-history or governance-record signals in months. $\textsc{NotExpired}(\tau, t)$ holds iff the trace itself has not crossed its own expiry, which is the minimum of the per-category TTL horizons and the policy expiry.
 
-However, utility is highly intent-dependent. A social participant may find great use for an NFT that acts as a key to an exclusive community, whereas a merely speculative investor may find it less useful. On the other hand, an in-game asset could be very useful to a player but insignificant to a non-gamer.
+This couples the formal value model to policy-constrained execution. The proof can be carried out over an abstract state machine with active policies, schema versions, evidence requirements with per-category TTLs, valuation traces, approvals, nonces, the current time, and authorised and executed transactions. The key transition is the authorisation transition, which fires at time $t$ and requires a valid trace with complete evidence, a \textit{proceed} decision, a trace-matching transaction, a permitting policy, evidence still fresh at $t$, a trace not yet expired at $t$, a fresh nonce, and a non-revoked policy. The trace-built-then-stale case is handled explicitly. A trace $\tau$ that satisfied $\textsc{FreshEvidence}$ when constructed at time $t_0$ but no longer satisfies $\textsc{FreshEvidence}$ at $t > t_0$ falls out of the authorisation transition, because the predicate is evaluated against $t$. The trace can be rebuilt, but it cannot be replayed past its evidence horizon. Section \ref{sec:trace-commitment} specifies the commitment scheme that realises the freshness predicate on-chain, and Section \ref{sec:onchain-layer} returns to this property and specifies the NFTAA-level checks that realise it. This property contains threats T2, T5, T6, T7, T8, T9, and T10 of Table \ref{tab:threat-model}, in the sense that stale evidence, manipulated oracles, incomplete traces, transaction mismatch, a compromised agent process, attempts to bypass NFTAA, and schema substitution cannot lead to authorisation.
 
-Therefore, we return to the last part of our value definition: intent-dependent weights.
-The weights $w_A, w_D, and w_U$ are dynamically allocated according to the user's objectives, whether it collateralization, long-term holding, speculative investment, or functional use. The valuation framework may accommodate a variety of user objectives while preserving a uniform assessment structure by modifying these weights.
+We do not prove that an authorised transaction is the right transaction. We prove that no transaction can be authorised without a valid trace, fresh evidence at authorisation time, a recognised schema version, and a permitting policy. The narrower claim is the one we believe the architecture can defensibly support, even when the agent acts only as an evidence interpreter and recommendation generator.
 
-whether it's for practical usage, long-term keeping, speculative investment, or collateralization. By altering these weights, the valuation framework may support a range of user goals while maintaining a consistent evaluation structure.
+\subsubsection{RequiredEvidence schemas as authored artefacts}
+\label{sec:required-evidence-schemas}
 
+The predicate $\textit{RequiredEvidence}(i, a)$ that appears in both safety properties is not an output of the language model. It is an authored, versioned artefact that is part of the contribution of this thesis. We make this status explicit because it is what allows the validator to be deterministic, the proof targets to be stated as predicates over states rather than over generations, and the on-chain check to recognise a schema version rather than to trust whatever the off-chain runtime claims to have used.
 
-How can an agentic system help us determine the value of an asset based on the token's intrinsic properties? That is a fundamental question. Since agents need proper context to evaluate criteria, the base of our architecture starts with Contextual Asset Value, where we define the properties of non-fungible token.
+A \textit{RequiredEvidence} schema is a structured document keyed by intent and asset class. Each schema declares a schema version, an asset-class identifier, an intent identifier, a list of required evidence categories, a list of optional categories that strengthen confidence when present, a freshness time-to-live $\textit{TTL}_c$ per category, provenance requirements per category, hard constraints expressed as predicates over recorded values, and a citation list naming the sources from which the requirements are drawn. The version field is mandatory. The validator signs the schema version and the schema hash jointly with the trace hash as described in Section \ref{sec:trace-commitment}, and the on-chain check refuses traces whose schema version is not in the contract's recognised set. The evaluation harness records the schema version used by each task as a configuration field, so that any reported result can be reproduced against the same schema bytes.
+
+We author one schema per regime in the evaluation, with sources cited inline so that every requirement is traceable. The NFT or access regime draws its categories from the hedonic-pricing and rarity literature on NFT valuation \cite{Lohmer2024, Ante2021, Dowling2022, Nadini2021, Kong2021}, together with metadata and provenance evidence from the contract and on-chain history. The productive-asset regime draws its categories from liquid-staking and DeFi risk analyses \cite{frangella2022aave, gambacorta2024defi} and from the public Lido risk disclosure on validator-set composition, slashing exposure, and withdrawal queue behaviour \cite{LidoRisk}. The treasury-governance regime draws its categories from the Web3 Foundation OpenGov treasury voting guidelines and from the academic and practitioner literature on treasury proposal evaluation \cite{W3FOpenGovVotingGuidelines, Rodrigues2022, Valastin2024proto}. The full schemas, with all fields and source citations, are listed in Appendix \ref{app:required-evidence-schemas}.
+
+Because the schemas are part of the contribution, they are also part of the evaluation. We run the main evaluation against the authored schemas at their tagged versions. We also run an additional comparison condition against a deliberately weakened variant of each schema, in which provenance requirements are relaxed, two of the required categories are demoted to optional, and the freshness TTLs are loosened by an order of magnitude. The weakened variant is tagged as its own schema version so that the on-chain check would refuse it if it were not in the recognised set. The purpose of the weakened condition is to test whether ICVP still beats the reduced valuation baselines when the schema is unfavourable to it. If the gap collapses, the contribution depends on schema authorship rather than on the projection $P_i$ and the instantiation $\Phi_i$. If the gap survives, the contribution holds at the level we claim.
+
+\subsubsection{Trace commitment and on-chain verification}
+\label{sec:trace-commitment}
+
+The two safety properties are stated above as predicates over abstract states. Realising them at the execution boundary requires a commitment scheme that the on-chain layer can check without trusting the off-chain runtime. We describe that scheme here. Section \ref{sec:onchain-layer} returns to the same checks from the NFTAA side.
+
+\paragraph{Off-chain trace storage.}
+The valuation trace $\tau$ is stored off-chain in a content-addressed store, addressed by $\textit{cid}(\tau) = \textsc{Hash}(\tau)$. IPFS is the reference choice in the prototype, but any content-addressed store with the same integrity property is admissible. Storing $\tau$ off-chain keeps the on-chain footprint small, and storing it content-addressed makes the on-chain hash a binding commitment to the bytes that the validator and the human approver saw.
+
+\paragraph{Schema commitment and validator signature.}
+The validator signs the trace jointly with its schema version and schema hash, not separately. Let $\textit{ver}(\tau)$ be the schema version that $\tau$ was validated against and let $\textit{sh}(\tau) = \textsc{Hash}(\textit{schema}_{\textit{ver}(\tau)})$ be the content hash of that schema. The validator emits
+\[
+\sigma_V \;=\; \textsc{Sign}_{\textit{sk}_V}\bigl(\textsc{Hash}(\tau)\,\|\,\textit{ver}(\tau)\,\|\,\textit{sh}(\tau)\bigr).
+\]
+Joint signing has the property that an attempt to retroactively weaken the schema breaks $\sigma_V$, because $\textit{sh}(\tau)$ would no longer match the signed value. This contains threat T10 of Table \ref{tab:threat-model}. The validator key $\textit{sk}_V$ is documented separately. A single validator key is acceptable for the prototype and is the configuration we use. The associated trust assumption is that $\textit{sk}_V$ is held in a way consistent with the trust assumptions of Section \ref{sec:threat-model}. A multi-validator or threshold configuration is a straightforward extension and does not change the safety statements.
+
+\paragraph{Approval signature.}
+The human approver signs the trace hash and the transaction hash jointly, not in sequence. Let $\textit{tx}$ be the candidate transaction. The approver emits
+\[
+\sigma_H \;=\; \textsc{Sign}_{\textit{sk}_H}\bigl(\textsc{Hash}(\tau)\,\|\,\textsc{Hash}(\textit{tx})\bigr).
+\]
+Joint signing has the property that an attempt to swap the transaction after approval breaks $\sigma_H$, because $\textsc{Hash}(\textit{tx})$ would no longer match the signed value. This contains threat T7 of Table \ref{tab:threat-model}.
+
+\paragraph{NFTAA on-chain check.}
+At authorisation time $t$, the NFTAA contract performs the following checks in order. Each check corresponds to a conjunct of the Trace-Gated Authorisation property.
+\begin{enumerate}
+    \item \textbf{Hash match.} The submitted $\textit{tx}$ references a trace commitment $\textit{cid}(\tau)$ and the contract checks $\textit{cid}(\tau) = \textsc{Hash}(\tau)$ against the value bound to the approval. (Realises $\textsc{ValidTrace}$ and $\textsc{TxMatches}$.)
+    \item \textbf{Schema version recognised.} The schema version $\textit{ver}(\tau)$ is in the contract's accepted-version set and the recorded $\textit{sh}(\tau)$ matches the version's registered hash. (Contains T10.)
+    \item \textbf{Validator signature.} $\textsc{Verify}_{\textit{pk}_V}(\sigma_V, \textsc{Hash}(\tau)\,\|\,\textit{ver}(\tau)\,\|\,\textit{sh}(\tau))$ holds. (Realises $\textsc{ValidTrace}$ jointly with the previous step.)
+    \item \textbf{Approval signature.} $\textsc{Verify}_{\textit{pk}_H}(\sigma_H, \textsc{Hash}(\tau)\,\|\,\textsc{Hash}(\textit{tx}))$ holds, for an approver key recognised by the account's policy. (Contains T7.)
+    \item \textbf{Policy match.} The actor, asset, target contract, function selector, amount, and chain identifier of $\textit{tx}$ fall inside the active policy. (Realises $\textsc{PolicyAllows}$, contains T9.)
+    \item \textbf{Fresh nonce.} The trace-bound nonce has not been used by this account. (Replay protection.)
+    \item \textbf{Not expired.} $t$ is not past the trace expiry $\textit{exp}(\tau)$ or the policy expiry. (Realises $\textsc{NotExpired}$, contains T2.)
+    \item \textbf{Not revoked.} The policy has not been revoked at time $t$. (Closes the time-of-check to time-of-use gap on the policy side.)
+\end{enumerate}
+Settlement happens only when all eight checks hold. If any check fails the call reverts and no state change is committed. The freshness predicate $\textsc{FreshEvidence}(\tau, t)$ is enforced as part of step seven on the NFTAA side, because $\textit{exp}(\tau)$ is computed off-chain as the minimum of the per-category TTL horizons and is recorded in $\tau$ before validator signing. An attempt to relax $\textit{exp}(\tau)$ after signing breaks $\sigma_V$. The eight checks together realise the Trace-Gated Authorisation property at the execution boundary. The detailed call sequence for the prototype, including the signing pipeline and the NFTAA call sites, is presented in the implementation chapter alongside the contract code.
+
+\subsection{Design Decisions and Rejected Alternatives}
+\label{sec:design-decisions}
+
+The architecture we present is one of several defensible designs. Before turning to the methodology, we make the alternatives explicit and explain why we rejected them, so that the reasoning that shaped ICVP and its enforcement boundary is visible to the reader rather than implicit in the result. We focus on the three decisions that most directly determine the formal shape of the contribution. The remaining design choices, including the role of \textit{defer}, the placement of human approval, the function of NFTAA, the evaluation protocol, and the proof scope, are stated where they have the strongest bearing on the chapters that follow.
+
+\paragraph{Decision 1: Intent as projection over evidence, not weights over fixed dimensions.}
+The simpler alternative we considered first treats Availability, Durability, and Utility as fixed variables and lets intent only re-weight them, as in
+\[
+V_i(a) = w_A(i)\, A(a) + w_D(i)\, D(a) + w_U(i)\, U(a).
+\]
+This formulation is attractive because it keeps the valuation function closed-form and the contribution of intent reduces to a single vector of weights. We rejected it for two reasons that are structural rather than aesthetic. First, the formulation presupposes that the same empirical variables are the right ones for every intent and every asset class. For heterogeneous Internet of Value objects, this is not the case. A Pudgy Penguin acquired for community access, an stETH position held for productive yield, and a Polkadot OpenGov treasury proposal evaluated under public-resource stewardship do not surface comparable evidence at all. The metadata permanence of a collectible, the peg depth and withdrawal queue of a liquid staking derivative, and the milestone schedule of a treasury proposal are not three measurements of one quantity. Reweighting cannot reconcile evidence that is categorically different. Second, the same object changes the evidence that matters under different intents. For an NFT held for long-term community access, metadata permanence and contract upgradeability dominate. For the same NFT used as DeFi collateral, oracle robustness, market depth at the relevant tick, and liquidation behaviour dominate instead. A fixed-dimension model cannot represent the fact that intent reshapes what counts as evidence, not only how much it counts. We therefore treat intent as an explicit projection $P_i$ over the evidence space $F(a, E)$, and only after projection do we instantiate $A_i, D_i, U_i$ on the projected evidence. The valuation $V_i = g_i(A_i, D_i, U_i)$ is the last step rather than the model. Our contribution is consequently a formal account of how stated intent changes evidence relevance and the empirical meaning of the valuation dimensions, not a parameterisation of weights on top of pre-fixed dimensions.
+
+\paragraph{Decision 2: A/D/U as an intent-instantiated taxonomy, not a universal ontology.}
+A second alternative we considered is to present Availability, Durability, and Utility as a universal ontology with one fixed empirical meaning per dimension across all asset classes. The appeal of this position is methodological economy. A universal ontology offers a single coordinate system in which any value object can be located, and it suggests that valuation reduces to measuring three well-defined quantities. We rejected this position because the tidiness is superficial. Under a universal ontology, Availability would have to mean the same operational quantity for an illiquid collectible, a deeply liquid staking derivative, and a treasury proposal whose Availability is not market liquidity at all but the scarcity or under-supply of the public-good contribution being requested. The shared label would hide incompatible measurements behind a single name, and any cross-asset comparison conducted on top of that label would be unsound. We retain Availability, Durability, and Utility because they are a useful taxonomy for thinking about value across the Internet of Value, but we make their empirical content depend on intent. For an NFT held for community access, Availability is rarity and access scarcity, Durability is metadata permanence and contract upgradeability, and Utility is membership benefit and cultural relevance. For stETH held for productive yield, Availability is liquidity and peg depth, Durability is validator-set health and protocol governance risk, and Utility is the realised yield net of fees and slashing exposure. For a Polkadot OpenGov treasury proposal, Availability is the scarcity of the proposed contribution and the opportunity cost of the requested allocation, Durability is the sustainability of the funded deliverables, and Utility is ecosystem benefit and strategic alignment. The taxonomy stays the same. Its content is reset by the intent. This lets us preserve comparability of structure across cases without committing to the false claim that one coordinate system fits every value object.
+
+\paragraph{Decision 3: Evidence-grounded valuation with a deterministic validator, not direct agent recommendation.}
+The third alternative we considered is the operationally simplest. We could let a language model read the asset, the intent, and the retrieved context, and emit \textit{proceed}, \textit{defer}, or \textit{decline} directly. We rejected this design because it confuses the source of evidence with the source of authority. If the model is the recommender, the dissertation must defend the recommendation, and the recommendation depends on opaque generation behaviour that we cannot characterise formally. The defence would have to take the form of a claim about model behaviour in general, which neither the literature nor our own evaluation can support at the level of rigour a value-relevant on-chain action requires. We instead split the role of the agent into two functions that can be inspected separately. The agent is an evidence interpreter and trace proposer. It retrieves evidence under the projection $P_i$, maps evidence to features that are relevant under the stated intent, proposes intent-conditioned instantiations of $A_i, D_i, U_i$, and assembles a valuation trace $\tau$ that records the evidence used, its provenance, the projection applied, the dimension instantiations, the resulting $V_i$, the decision, and the confidence. A separate deterministic validator then checks the trace for evidence completeness against $\textit{RequiredEvidence}(i, a)$, provenance, schema validity, hard constraints, and internal consistency. The trace is the unit that downstream stages reason about, and the validator is what gates whether the trace can support a confident decision. This separation lets us state the safety properties of Section \ref{sec:proof-targets} cleanly. We do not need to argue that the language model is correct. We only need the property that no confident \textit{proceed} can be returned, and no transaction can be authorised, without required evidence, a valid trace, human approval, and a permitting policy. The narrower claim is what we believe the architecture can defensibly support, and the validator is the artefact that makes the claim checkable.
 
 \subsection{Methodology proposal}
 
-The methodology consists of four different parts that transform user intent into verifiable on-chain actions. A distinct pipeline from intent to settlement is created by mapping each phase to distinct architectural layers. The methodology is based on the previously established top value framework, which guarantees that the concepts of availability, durability, and usefulness are translated into tangible behavior.
+The methodology puts ICVP into practice. It transforms a stated intent and an asset into an auditable valuation trace and, when applicable, into a policy-constrained transaction prepared for human approval and account-level enforcement. Each phase maps to a distinct architectural layer, so the pipeline from intent to settlement is explicit rather than implicit. The methodology follows the formal model in Section \ref{sec:icvp}, which guarantees that the projection $P_i$ and the instantiation $\Phi_i$ are visible steps in the pipeline rather than hidden assumptions inside a single prompt.
 
-Therefore, we propose the following setup for our methodology for asset valorization in agentic systems within the Internet of Value:
+We propose the following setup for asset valorisation in agentic systems within the Internet of Value:
 
 \begin{enumerate}
-    \item \textbf{Data Acquisition:} Based on the intent, the AI agent initiates requests to access external data sources. This data includes information necessary for evaluating NFTs, such as metadata, market trends, and usage statistics with respect to Availability, Durability and Utility.
-    \item \textbf{Contextual Analysis:} AI agents evaluate the data in order to determine the value of the NFT. This evaluation takes into account elements such as functional benefits (utility), lifespan and robustness (durability), and scarcity (availability).
-    \item \textbf{Intent-based Decision Making:} AI agents use the analysis to make well-informed judgments about the NFT, such as suggesting transactions, updating information, or initiating smart contract operations.
-    \item \textbf{Agent based execution:}  The decisions made by AI agents are executed on the blockchain through smart contracts, ensuring transparency, immutability, and decentralized governance.
+    \item \textbf{Evidence acquisition.} Given the asset $a$ and the stated intent $i$, the agent retrieves evidence $E$ from external data sources and records provenance for each item. The retrieval is intent-aware, so the evidence pulled for community access differs from the evidence pulled for speculative trading even when the asset is the same.
+    \item \textbf{Intent-specific projection and instantiation.} The agent applies the intent-specific projection $P_i$ to the retrieved evidence and instantiates $A_i$, $D_i$, and $U_i$ for the asset class and the action context. This step makes explicit what counts as Availability, Durability, and Utility under $i$.
+    \item \textbf{Trace construction and decision.} The agent assembles the valuation trace $\tau$, computes the decision signal $V_i$ and the decision $d \in \{\textit{proceed}, \textit{defer}, \textit{decline}\}$, and attaches confidence and hard constraints. A deterministic validator checks the trace for required evidence, provenance, and policy compatibility.
+    \item \textbf{Approval and policy-constrained execution.} Once a human approves the action, the execution component prepares an on-chain transaction linked to $\tau$ and submits it to the NFTAA-controlled account. The account-level policy enforces the trace-gated authorisation property of Section \ref{sec:proof-targets} before any state change is settled on-chain.
 \end{enumerate}
 
 
@@ -67,7 +189,7 @@ In the following subsection, we will describe the technical and operational requ
 \subsection{System Requirements}
 
 
-To compute the value components $A(a)$, $D(a)$, and $U(a)$ for an arbitrary asset $a$, the system must acquire heterogeneous data from multiple sources. These requirements ensure that agents have access to information. Therefore, we define the following data acquisition requirements:
+To instantiate the projected dimensions $A_i$, $D_i$, and $U_i$ for an asset $a$ under a stated intent $i$, the system must acquire heterogeneous data from multiple sources. The data acquisition layer does not decide what is relevant. The intent-specific projection $P_i$ does. Data acquisition only needs to make a sufficient evidence space available so that $P_i$ can select from it. Therefore, we define the following data acquisition requirements:
 
 \begin{itemize}
     \item The system should retrieve data from at least one data source, namely: Blockchain explorers, Decentralized storage networks, Marketplace APIs, Rarity analytics, and Oracle services.
@@ -75,20 +197,19 @@ To compute the value components $A(a)$, $D(a)$, and $U(a)$ for an arbitrary asse
     \item Each data point should be accompanied by provenance information: the source URL, retrieval timestamp, and content hash. This ensures verifiability and auditability of the acquired information.
 \end{itemize}
 
-The agentic system must possess specific capabilities to analyze assets and make decisions based on user intent. These capabilities include:
+The system needs the following capabilities to analyse assets and prepare decisions under a stated intent.
 
 \begin{itemize}
-    \item System should accept user intent expressed in natural language.
-    \item System should translate user intent into formal weight assignments $w_A, w_D, w_U$ .
-    \item Given an asset identifier (contract address and token ID) and intent weights, the valuation agent should return score for $A(a)$, $D(a)$, and $U(a)$ and along with a structured report with justifications for each score.
-    \item The decision agent must produce a structured recommendation in a JSON format.
-    \item The execution agent should enforce on-chain policies before submitting transactions. These policies include: Spending limits,Allowed protocols, value verification requirements\footnote{e.g. minimum durability score}.
+    \item Accept user or governance intent in natural language and record it as a structured input that drives the projection $P_i$ and the instantiation $\Phi_i$ defined in Section \ref{sec:icvp}.
+    \item Given an asset identifier and a stated intent, retrieve the evidence permitted by $P_i$, instantiate Availability, Durability, and Utility for the asset class and the action context, and emit a structured rationale for each dimension. Weighted aggregation, when used, runs only after projection and instantiation, and is one operational choice, not the value model.
+    \item Produce a structured valuation trace, including a decision in $\{\textit{proceed}, \textit{defer}, \textit{decline}\}$, that a deterministic validator can check for required evidence, provenance, and policy compatibility.
+    \item Do not authorise execution on its own. The transaction preparation component constructs, simulates, and packages a candidate transaction linked to the trace, presents it for human approval, and submits it to the on-chain layer only after approval has been recorded. Account-level policy checks (spending limits, allowed protocols, evidence and trace conditions) stay enforced on-chain.
 \end{itemize}
 
 
 \subsection{Architecture}
 
-The proposed architecture connects human intent with blockchain settlement through three operational layers, namely the local, agentic, and on-chain layer, supported by an external data layer that supplies market, metadata, governance, and oracle inputs. Through the local layer, participants may articulate their objectives in natural language, which is subsequently verified and transformed into standardized prompts. In the agentic layer, these prompts are processed by autonomous agents that evaluate assets along the availability, durability, and utility axes, interpret the findings according to user intent, and generate structured suggestions. When these suggestions are approved, execution agents convert them into on-chain transactions, which are then enforced by smart contracts at the on-chain layer. The data layer is treated as an external dependency rather than as a fourth execution layer, because it does not reason about value or carry out transactions. It only provides the inputs that the agentic layer consumes.
+The architecture connects human intent with blockchain settlement through three operational layers (local, agentic, and on-chain), supported by an external data layer that supplies market, metadata, governance, and oracle inputs. The pipeline runs in one direction: Intent $\rightarrow$ ICVP $\rightarrow$ Valuation Trace $\rightarrow$ Human Approval $\rightarrow$ NFTAA Policy Check $\rightarrow$ On-chain Execution. The local layer is where a participant states intent in natural language, which is verified and turned into a structured input. The agentic layer retrieves the projected evidence, instantiates Availability, Durability, and Utility under the stated intent, assembles a valuation trace, and runs deterministic validation. After a human approves a specific candidate transaction linked to a valid trace, the transaction preparation component submits it to the on-chain layer. The on-chain layer, anchored by NFTAA, runs the policy check and settles the action only when the trace, the human approval, and the policy all permit it. The data layer is an external dependency, not a fourth execution layer. It does not reason about value and does not move funds. It supplies the inputs the agentic layer reads.
 
 \begin{figure}[!h]
     \centering
@@ -97,20 +218,20 @@ The proposed architecture connects human intent with blockchain settlement throu
     \label{fig:architecture}
 \end{figure}
 
-In Figure \ref{fig:architecture}, we present the proposed architecture for agentic systems in the context of the Internet of Value. The system has three operational layers, the local layer, the agentic layer, and the on-chain layer, together with an external data layer that supplies inputs to the agentic layer. At the bottom, the on-chain layer anchors the system through smart contracts that implement token standards, access control, and event emission. These contracts act as an interface for the agentic system, ensuring that every transaction is transparent and verifiable.
+Figure \ref{fig:architecture} shows the architecture. It has three operational layers (local, agentic, on-chain) and an external data layer that feeds the agentic layer. At the bottom, the on-chain layer anchors the system through smart contracts that implement token standards, access control, and event emission. These contracts are the interface the agentic system writes against, and they keep every settled transaction transparent and verifiable.
 
-The agentic layer is a semi-autonomous layer of AI bots that may interact with users and carry out on-chain smart contracts. In this layer, valuation agents gather asset data from dispersed sources including price feeds, IPFS, marketplaces, and rarity tools. While execution agents connect directly with the blockchain to carry out the authorized operations, decision agents convert these results into structured suggestions that are modified based on user intent. Model Context Protocol adapters provide a structured interface that lets the agentic layer interact with external data sources. This improves the repeatability and auditability of tool invocation, but correctness still depends on adapter implementation, source reliability, access control, and resistance to prompt-injection attacks. Lastly, the entrance point for human players is formed by the local layer. Before reaching the agentic layer, intent is first stated in natural language, verified, and converted into standardized prompts. By structuring the system in this way, the architecture closes the loop between human intention, autonomous reasoning, and decentralized settlement, while maintaining security, transparency, and extensibility.
+The agentic layer is a decision-support layer, not a control layer. The valuation component gathers asset data from price feeds, IPFS, marketplaces, and rarity tools, and applies the intent-specific projection $P_i$. The decision component instantiates $A_i$, $D_i$, $U_i$ under the stated intent, assembles the valuation trace, and runs deterministic validation. The transaction preparation component constructs and simulates a candidate transaction linked to the trace and submits it for human approval. After a human approves, the candidate is forwarded to the NFTAA-controlled account, where the on-chain policy check decides whether to settle. Model Context Protocol adapters supply a structured interface for tool invocation across these components, which improves reproducibility and auditability. Correctness still depends on adapter implementation, source reliability, access control, and resistance to prompt injection. The local layer is the entry point for human participants. Intent is first stated in natural language, verified, and turned into a structured input before it reaches the agentic layer. The architecture closes the loop between intent, evidence-grounded recommendation, human approval, and decentralised settlement.
 
-The data layer's inclusion highlights the need for trustworthy information streams to be the foundation of any effective digital asset appraisal. This layer collects and standardizes data from many sources, including as public block explorers, decentralized storage systems like IPFS, centralized and decentralized marketplaces, rarity ranking services, and external price feeds oracles. The primary role of the data layer is to provide structured, machine-readable input to the agentic layer, abstracting away differences between providers while preserving verifiability of origin. In this sense, the data layer functions as the knowledge substrate upon which agents perform their contextual analysis.
+The data layer matters because the rest of the architecture relies on what it surfaces. It collects and standardises data from public block explorers, decentralised storage systems such as IPFS, centralised and decentralised marketplaces, rarity ranking services, and external price-feed oracles. Its job is to supply structured, machine-readable input to the agentic layer, hiding differences between providers while keeping origin verifiable. The data layer is the evidence substrate the rest of the pipeline reads from.
 
-The interaction between these four layers follows a continuous cycle. The process starts with the user formulating their intent at the local layer. The intent is verified, recorded, and converted into a uniform prompt. After receiving the message, the agentic layer arranges the work of specialized agents. Valuation agents evaluate availability, durability, and utility by querying the data layer to obtain asset-specific information. After that, decision agents calculate a context-dependent value function and generate a structured suggestion by combining these evaluations with the user's stated goal.
+The interaction between these four layers follows one cycle. The process starts with the user stating intent at the local layer. The intent is verified, recorded, and turned into a structured input. The agentic layer then runs the three components in sequence. The valuation component retrieves the evidence permitted by the intent-specific projection $P_i$ from the data layer and instantiates Availability, Durability, and Utility under that intent. The decision component assembles the valuation trace, attaches the decision label, and runs deterministic validation. The transaction preparation component constructs and simulates a candidate transaction linked to the trace and submits it for human approval. The cycle closes at the on-chain layer, where the NFTAA policy check decides whether the approved transaction settles.
 
-By organizing the architecture in this manner, we achieve a modular system with clearly separated concerns. The on-chain layer ensures settlement and immutability, the agentic layer carries out cognition and decision-making, the local layer mediates human contact, and the external data layer supplies the inputs the agentic layer reasons over. This separation supports extensibility and strengthens the overall design's resilience. The integrity of the system may be maintained when integrating new data sources, agent kinds, or smart contract modules. Moreover, reliance on open token standards and decentralized storage solutions ensures interoperability across EVM-based and non-EVM chains. At the same time, the use of MCP secures the predictable behavior of autonomous agents. Together, these properties create an architecture that is transparent, secure, and adaptable.
+The result is a modular system with clearly separated concerns. The on-chain layer handles settlement, immutability, and policy enforcement. The agentic layer handles evidence interpretation and trace construction. The local layer mediates human approval. The external data layer supplies the inputs the agentic layer reads. This separation supports extensibility. New data sources, new component implementations, or new smart-contract modules can be integrated without breaking the contract between layers. Reliance on open token standards and decentralised storage keeps the system interoperable across EVM and non-EVM chains. MCP keeps tool invocation reproducible across components.
 
 
 \subsection{Agentic Layer}
 
-Without any doubt, the agentic layer is a core component of our architecture. It mediates between human intent, raw blockchain data, and the on-chain settlement layer, enabling intelligent and context-aware interactions with digital assets. Unlike the on-chain layer, which is inherently deterministic and immutable, the agentic layer introduces flexibility, reasoning, and adaptation through autonomous AI processes. Execution agents operationalize validated decisions on-chain, valuation agents convert heterogeneous data into structured metrics, decision agents contextualize these metrics based on user intent, and MCP adapters guarantee consistent and repeatable communication with external tools. Together, these components create a closed loop that begins with user intent and results in verifiable blockchain state changes.
+The agentic layer is a core component of the architecture. It sits between human intent, raw blockchain data, and the on-chain settlement layer. The on-chain layer is deterministic and immutable. The agentic layer adds the reasoning step needed to interpret evidence under intent, but it does not authorise actions. The valuation component turns heterogeneous data into instantiated $A_i$, $D_i$, and $U_i$ under intent. The decision component assembles the trace and runs deterministic validation. The transaction preparation component constructs and simulates a candidate transaction and submits it for human approval. MCP adapters give all three a reproducible interface to external tools. Together they form a loop that starts with user intent, ends with a human-approved transaction, and lets NFTAA decide whether the action settles on-chain.
 
 \begin{figure}[!h]
     \centering
@@ -119,261 +240,161 @@ Without any doubt, the agentic layer is a core component of our architecture. It
     \label{fig:agentic-sequence}
 \end{figure}
 
-The valuation agent is responsible for the contextual analysis of assets within the Internet of Value. As seen in Figure \ref{fig:agentic-sequence}, its main responsibility is to calculate the three aspects of value: usefulness, durability, and availability. In order to accomplish this, the agent continually gathers information from a variety of sources, such as markets, decentralized storage networks (like IPFS), blockchain explorers, rarity analytics platforms, and oracle services. The agent normalizes this information into a consistent internal representation, which allows it to compare diverse assets across collections and chains.
+The valuation component handles evidence interpretation. As shown in Figure \ref{fig:agentic-sequence}, its responsibility is to instantiate the three valuation dimensions (Availability, Durability, Utility) under the stated intent, after the projection $P_i$ has selected the relevant evidence. To do this, the component pulls evidence from markets, decentralised storage networks (such as IPFS), blockchain explorers, rarity analytics platforms, and oracle services. It normalises this evidence into a consistent internal representation, so the same trace schema can hold instantiated dimensions for assets across collections and chains.
 
-In the context of NFTs, for availability the valuation agent determines scarcity by inspecting the overall token supply and trait distribution.
+For an NFT under a speculative-trading or collectible intent, Availability is instantiated from token supply and trait distribution.
 We compute both, how many tokens exist relative to the maximum possible supply (absolute scarcity) and how specific token ranks within the collection based on its trait combination (rarity).
-Durability is evaluated by two main sub-components: storage reliability, mutability risk, and optionally ecosystem resilience. Storage reliability depends on where the metadata of the particular token resides. Clearly, on-chain storage has the greatest score, IPFS with many pinning services get a somewhat lower grade, and centralized servers like S3 receive the lowest. By examining the smart contract for potentially harmful functions like \texttt{setBaseURI} that could change metadata pointers, determining whether contract ownership is renounced or controlled by a multi-signature wallet, and confirming whether the upgrade authority has been revoked on chains like Solana, mutability risk is evaluated. Optionally, ecosystem resilience considers the security and stability of the underlying blockchain, factoring in validator decentralization, historical uptime, and resistance to consensus attacks.
-Utility is evaluated by looking at the asset's current and future use cases. The agent recognizes current features such community access rights, in-game usability, and involvement in governance. In order to find planned enhancements that might eventually improve the asset's usefulness, it also assesses potential utility by examining roadmaps, development activity, and community involvement. Moreover, utility is vital for intents where usefulness is prioritized over scarcity or durability (e.g., Does this NFT grant DAO governance rights?).
+Durability under a long-term holding intent is instantiated from storage reliability, mutability risk, and optionally ecosystem resilience. Storage reliability depends on where the metadata of the particular token resides. Clearly, on-chain storage has the greatest score, IPFS with many pinning services get a somewhat lower grade, and centralized servers like S3 receive the lowest. By examining the smart contract for potentially harmful functions like \texttt{setBaseURI} that could change metadata pointers, determining whether contract ownership is renounced or controlled by a multi-signature wallet, and confirming whether the upgrade authority has been revoked on chains like Solana, mutability risk is evaluated. Optionally, ecosystem resilience considers the security and stability of the underlying blockchain, factoring in validator decentralization, historical uptime, and resistance to consensus attacks.
+Utility under a functional-access or governance intent is instantiated from current use cases (community access rights, in-game usability, governance weight) and from forward-looking signals where the projection allows them (roadmaps, development activity, community involvement). What counts as Utility is reset by intent. For an access intent, governance weight is part of Utility. For a speculative-trading intent, it usually is not.
 
-The valuation agent produces a structured report that details the computed scores for availability, durability, and utility, along with justifications for each score. This report serves as the foundational input for the decision agent, which will contextualize these metrics according to user intent. By modularizing the valuation process in this way, the architecture ensures that raw data are transformed into meaningful insights that can inform higher-level reasoning and decision-making.
+The valuation component emits intent-instantiated scores or judgements for $A_i$, $D_i$, and $U_i$, each with a rationale and pointers back to the evidence items it relied on. This output feeds the decision component, which assembles the trace and runs deterministic validation. The split keeps evidence interpretation and decision assembly separately replaceable.
 
-How can a large language model become an expert in asset valorization? That's an important question. It starts with a system prompt, which can be imagined as a set of permanent instructions for how the AI model should behave. In Listing \ref{lst:systemprompt}, we can see an excerpt from the system prompt for the valuation agent.
+A language model placed inside the valuation component runs under a system prompt that holds its scope to evidence interpretation under the projection $P_i$ and the instantiation $\Phi_i$. The prompt is an implementation mechanism for producing the trace fields in Listing \ref{lst:tracefields}. It is not the contribution. Listing \ref{lst:systemprompt} gives an excerpt that shows the kind of constraints this prompt encodes.
 
-\begin{lstlisting}[caption={System Prompt for asset valuator}, label={lst:systemprompt}]
-You are OnChainAssetValuator, a specialized AI agent that analyzes, values, and advises on blockchain / NFT / token assets.
-Your purpose is: asset identifier (contract + token ID or project name), you will:
+\begin{lstlisting}[caption={Illustrative excerpt from the valuation-component system prompt.}, label={lst:systemprompt}]
+You are the valuation component of an Intent-Conditioned Value Projection (ICVP) pipeline. You are an evidence interpreter, not an authoriser. You never recommend execution and never claim objective truth about value.
 
-1. Fetch on-chain & off-chain data (metadata storage, contract mutability, trait rarity, price history, utility roadmap).
-2. Compute three core metrics for the asset: Availability (scarcity), Durability (resilience of metadata, mutability risk), Utility (present & prospective usefulness / monetization).
-4. Output a Markdown object with at least the following fields:
-   - `Availability` description
-   - `Durability` description
-   - `Utility` description
-   - `Overall sumarry`
-   - `Reasoning`
+Inputs you receive on each call:
+- stated intent i (long-term holding, speculative trading, collateralisation, functional access, liquidity exit, public-resource stewardship, etc.)
+- asset identifier a (contract address and token id, token symbol, or proposal reference)
+- projected evidence F_i: items selected by P_i with provenance (source, retrieval timestamp, content hash)
 
-Behavioral constraints & guidelines:
-- Always validate that metadata conforms to standards (ERC-721 metadata, OpenSea schema).
-- Identify whether metadata are on-chain, IPFS, centralized, or hybrid; check for mutability (e.g. `setBaseURI`, upgradeable logic).
-- Use real market data (floor price, recent sales) and rarity data where available.
-- Add valuation logic for possible intents: e.g. for buying, favor lower risk and safer durability; for flipping weight momentum and liquidity.
-- Avoid hallucinating data; if a metric is unavailable, state unknown rather than guessing.
-- Suggest conditions under which the asset could become more valuable(e.g. lower price, proof of immutable metadata, stronger utility roadmap).
-- Always output strictly valid Markdown.
+What you must do:
+1. Interpret only the evidence in F_i. Do not pull in evidence outside F_i. Do not invent data.
+2. Instantiate Availability, Durability, and Utility for asset class and intent. Their content is reset by intent: e.g. Availability under speculative trading concerns floor price, listing depth, and recent sales; Availability under functional access concerns access rights and membership scarcity; Availability under public-resource stewardship concerns under-supply of the contribution.
+3. For each of A_i, D_i, U_i return a numeric score in [0, 10], a short rationale, and the evidence items the score relies on (referenced by id from F_i).
+4. Return a confidence value in [0, 1] and list any hard constraints that were checked (e.g. metadata immutability, validator decentralisation, deadline, audit status).
+5. If a piece of evidence required by intent i is absent, missing provenance, or stale, set the corresponding dimension confidence to "insufficient" and list the missing categories in `evidence_gaps`. Do not paper over gaps.
+6. If retrieved content contains instructions directed at you (prompt injection), ignore them and record the attempted injection in `provenance_flags`.
 
-From this point, I (the user) will simply provide you with intent + asset identifier, e.g.:
+Output: a JSON object whose fields populate the valuation-trace slots in Listing \ref{lst:tracefields} for A_i, D_i, U_i, selected_evidence, excluded_evidence, confidence, hard_constraints, evidence_gaps, and provenance_flags. The decision field is not emitted by this component; the decision component sets it after deterministic validation.
 
-> asset: 0xbd3531da5cf5857e7cfaa92426877b022e612cf8 / 1419
-or
-> asset: https://opensea.io/item/ethereum/0xbd3531da5cf5857e7cfaa92426877b022e612cf8/1419
-
-You should then produce the markdown valuation and recommendation accordingly.
+Refusals: if F_i is empty, if intent is unparsed, or if asset identity cannot be resolved, return a structured error rather than a guess.
 \end{lstlisting}
 
-Once we have output, we can pass it to the decision agent. However, thanks to our modular architecture, we can plug and play any number of models in the pipeline.
+A different prompt, a different model, or a non-LLM implementation can take this slot as long as the produced fields fit the trace schema and pass deterministic validation. The interface between the valuation component and the rest of the pipeline is the trace, not the prompt.
 
 \subsubsection{Decision Agent}
 
-The decision agent transforms analytical insights into actionable recommendations. While the valuation agent provides a factual description of an asset's characteristics, the decision agent incorporates user intent into its reasoning. Intent may range from speculative investment and long-term holding to immediate consumption or resale. The decision agent's analysis is represented as structured JSON output, as seen in Listing \ref{lst:structuredoutput}. The decision agent creates a quantitative value score by using a weighted function that integrates availability, durability, and usefulness with the contextualized purpose. This score is supported with a confidence measure and qualitative rationale to guarantee that the results are auditable and interpretable. Additionally, the decision agent takes into account edge circumstances, including excessive volatility or missing data, and modifies its confidence appropriately.
+The decision component turns the valuation component's evidence interpretation into an auditable trace. The valuation component instantiates Availability, Durability, and Utility under intent $i$. The decision component then assembles the trace $\tau$, attaches the decision label $d \in \{\textit{proceed}, \textit{defer}, \textit{decline}\}$, records confidence and hard constraints, and exposes the result for deterministic validation. The output is not a free-text recommendation. It is a structured artefact whose fields are fixed in advance.
 
-How are the weights determined? The weights are obtained from pre-established intent profiles that associate particular weight distributions with typical user objectives. For instance, a long-term holder would place more emphasis on durability, but a speculative investor might value availability and usefulness. Based on the user's stated purpose, the decision agent determines the proper weight set and adds it to the valuation agent's scores. We define several canonical intent profiles:
+The trace schema is the main contribution at this layer. A valid valuation trace contains the stated intent, the selected and excluded evidence with provenance, the instantiated $A_i$, $D_i$, and $U_i$ with rationale, the decision and confidence, the hard constraints checked, the policy constraints to be enforced on-chain, the human approval status, and a link to any prepared transaction:
 
-\begin{itemize}
-    \item \textbf{Speculative Investment}: Maximize short-term appreciation potential
-    \begin{itemize}
-        \item $w_A = 0.6, w_D = 0.1, w_U = 0.3$
-        \item Prioritizes scarcity and momentum-driven utility; durability matters less for quick flips.
-    \end{itemize}
-
-    \item \textbf{Long-Term Holding}: Maximize preservation of value over time
-    \begin{itemize}
-        \item $w_A = 0.2, w_D = 0.6, w_U = 0.2$
-        \item Prioritizes durability to ensure the asset remains intact and recognizable decades later.
-    \end{itemize}
-
-    \item \textbf{Functional Use}: Maximize immediate practical benefits
-    \begin{itemize}
-        \item $w_A = 0.1, w_D = 0.2, w_U = 0.7$
-        \item Prioritizes current utility for access, governance, or consumption; scarcity and durability are secondary.
-    \end{itemize}
-
-    \item \textbf{Collateralization}: Balance safety and utility for DeFi integration
-    \begin{itemize}
-        \item $w_A = 0.3, w_D = 0.5, w_U = 0.2$
-        \item Requires high durability for lender confidence and moderate availability for liquidation feasibility.
-    \end{itemize}
-\end{itemize}
-
-
-This dynamic weighting allows the system to adapt its recommendations to diverse user needs while maintaining a consistent evaluation framework.
-
-The decision agent outputs its recommendation in structured JSON fromat, which guarantees compatibility with downstream tools and ensures reusability with other systems: agent consistently produces the same structured response.
-
-\begin{lstlisting}[caption={Structured output format of decision agent}, label={lst:structuredoutput}]
-{
-  "confidence": "Model confidence in the recommendation.",
-  "value": {
-    "score": "Overall value score on the given scale.",
-    "scale": "Scale used for scores.",
-    "weights": {
-      "availability": "Weight for Availability component.",
-      "durability": "Weight for Durability component .",
-      "utility": "Weight for Utility component."
-    },
-    "components": {
-      "availability": {
-        "score": "Component score on the specified scale.",
-        "note": "Short justification for the component score."
-      },
-      "durability": {
-        "score": "Component score on the specified scale.",
-        "note": "Short justification for the component score."
-      },
-      "utility": {
-        "score": "Component score on the specified scale.",
-        "note": "Short justification for the component score."
-      }
-    }
-  },
-  "proceed": "Whether the user should proceed with the stated intent.",
-  "reasoning": "Brief rationale explaining the decision."
+\begin{lstlisting}[caption={Required fields of the valuation trace $\tau$.}, label={lst:tracefields}]
+valuation_trace = {
+  intent,
+  selected_evidence,        // with provenance per item
+  excluded_evidence,        // items dropped by P_i
+  A_i, D_i, U_i,            // instantiated under i, with rationale
+  decision,                 // proceed | defer | decline
+  confidence,
+  hard_constraints,
+  provenance,
+  human_approval_status,
+  policy_constraints,
+  prepared_transaction      // optional, linked to tau
 }
 \end{lstlisting}
 
+When the operational aggregation $g_i$ in Equation~\ref{eq:adu-aggregation} is used, weights run \emph{after} the projection $P_i$ and the instantiation $\Phi_i$. They aggregate dimensions whose contents have already been reset by the intent. Weight choice is a local engineering decision inside an intent-specific aggregator, not a substitute for the projection and instantiation steps. If we remove $P_i$ and $\Phi_i$ and keep only weighted aggregation, the model collapses to the fixed-weight baseline we evaluate against in Chapter \ref{sec:evaluation}.
 
-The execution agent is in charge of putting the decision agent's suggestions into practice. The execution agent safely communicates with the blockchain once an activity, such buying an NFT, transferring a token, or engaging with a governance contract, is verified by a human-in-the-loop procedure. Since the agent knows the parameters of the inspected data, such as the smart contract address, the account address, or the token ID, we can submit a valid on-chain transaction along with its simulation. The execution agent manages cryptographic signing, nonce management, and gas optimization, thereby shielding the user from low-level technical complexities. It also monitors the blockchain for confirmations and provides verifiable proofs of execution back to the user, such as the transaction hash. To enhance resilience, the execution agent is designed with fail-safe strategies. In cases of failed execution, it will notify the user of the cause. The transparency of its actions is guaranteed by on-chain settlement, which produces immutable records of every decision.
+Prompts are one way to produce such a trace from a language model. The trace, not the prompt, is what the decision component is required to output. A different implementation that produces the same trace structure under the same projection and instantiation can take its place.
 
+\subsubsection{Transaction preparation}
 
-% talk about liquspell
-
-However, the main question remains unanswered. How does the system understand from a simple English prompt that it should execute a chain transaction? Luckily, modern LLMs can be extended with tools \cite{Mialon2023}, thereby expanding the model's capabilities. In the Listing \ref{lst:tooldefiniton} we see a definition of the tool that can teleport DOT from one parachain to another parachain with a given amount. These tools are immediately available within the LLM and must be defined by the time we establish a connection with the agent.
-what if, in order to react to a user's demand, we must be able to manage other services? We thus require the Model Context Protocol.
-The interoperability and standards required for dependable agent-tool interactions are provided by MCP adapters. They act as middleware, converting structured agent queries and plain language prompts into deterministic tool calls. Large language models may behave erratically without this abstraction as the same prompt may cause various tool invocations in separate sessions. MCP adapters enforce consistency by binding prompts to fixed function signatures, ensuring that identical inputs always yield the same outputs. Within the agentic layer, MCP adapters connect valuation agents to data sources, decision agents to external evaluators, and execution agents to blockchain interfaces. Additionally, they provide extensibility by allowing new tools to be registered without changing the fundamental agent logic, allowing the architecture to change as technology progresses. The system retains predictability and repeatability by using MCP.
+The transaction preparation component does not execute decisions on its own. It turns an approved valuation trace into a candidate on-chain transaction, simulates it against current state, packages the call data, and submits it for human approval. After a human approves a specific candidate, the component forwards it to the NFTAA-controlled account. The trace-gated authorisation property of Section \ref{sec:proof-targets} is then enforced before any state change is settled. The component knows the smart-contract address, the call data, and the expected effects, and it records the simulation result and the gas estimate alongside the trace. It manages signing, nonce ordering, and broadcast. It does not bypass approval, does not act outside the policy boundary, and does not amend a trace after approval. If the on-chain policy refuses the transaction, the component reports the cause and reopens the trace for revision instead of retrying around the policy.
 
 
+A natural-language request does not become an on-chain action on its own. The valuation component reads evidence and emits trace fields. The decision component finalises the trace. The transaction preparation component constructs and simulates a candidate call. Tool-augmented language models \cite{Mialon2023} and Model Context Protocol adapters supply the structured interface used at the retrieval and call-construction steps. MCP adapters bind agent queries to fixed function signatures, which makes tool invocation reproducible across sessions and narrows the surface on which retrieved content or prompts can shift behaviour. Listing \ref{lst:tooldefiniton} gives a short tool signature for cross-chain DOT teleport. Full tool definitions are not the contribution of this chapter.
 
-\begin{lstlisting}[caption={Tool definition for OpenAI GPT-4o model}, label={lst:tooldefiniton}]
-export const teleportTokenTool: ToolConfig < TeleportTokenArgs > = {
-  definition: {
-    type: 'function',
-    function: {
-      name: 'teleport_tokens',
-      description: 'Teleport tokens from one chain to another with defined currency',
-      parameters: {
-        type: 'object',
-        properties: {
-          from: {
-            type: 'string',
-            description: 'The name of the source chain'
-          },
-          to: {
-            type: 'string',
-            description: 'The name of the destination chain'
-          },
-          symbol: {
-            type: 'string',
-            description: 'The symbol of the token on the source chain, if no symbol is provided, assume it is DOT'
-          },
-          amount: {
-            type: 'string',
-            description: 'The amount of tokens to swap, multiply the amount by 1e10'
-          },
-          receiver: {
-            type: 'string',
-            description: 'The receiver of the tokens, must be valid in AccountID32 or AccountKey20 format '
-          },
-        },
-        required: ['from', 'to', 'receiver', 'amount']
-      }
-    }
-  }
-}
+\begin{lstlisting}[caption={Illustrative tool signature for cross-chain transfer.}, label={lst:tooldefiniton}]
+teleport_tokens({ from, to, symbol, amount, receiver })
+// Returns: a candidate transaction packaged for human approval.
+// Does not authorise execution. NFTAA-level policy checks gate
+// settlement after approval (Section \ref{sec:onchain-layer}).
 \end{lstlisting}
 
-However, one of the unique features of our architecture is how our transactions are transmitted from the execution agent to a blockchain. That will be discussed in the following subsection.
+The two interfaces that matter are the valuation trace and the candidate transaction. Tool definitions and MCP adapters sit underneath them.
 
 \subsection{On-chain Layer}
+\label{sec:onchain-layer}
 
-The on-chain layer constitutes the settlement and trust foundation of the proposed architecture. It is here that all agentic decisions are ultimately anchored and enforced through blockchain primitives. Unlike the agentic layer, which is adaptive and reasoning-oriented, the on-chain layer provides determinism, immutability, and verifiability, ensuring that every executed action is transparently recorded in the distributed ledger.
+The on-chain layer is the enforcement and settlement boundary of the architecture. It does not compute value. It enforces that only human-approved, policy-compliant actions linked to a valid valuation trace can change asset state. This is where the trace-gated authorisation property of Section \ref{sec:proof-targets} becomes concrete. The agentic layer is adaptive and reasoning-oriented. The on-chain layer is deterministic and immutable, and every executed action is recorded on the ledger and can be checked from outside.
 
-Agent-based execution begins when a decision execution agent receives an approval from the human-in-the-loop process, which initiates a multi-step safety verification process before submitting any transaction to the blockchain.
+A candidate transaction reaches this layer only after the trace has been validated and a human has approved a specific transaction linked to it. Submission to the chain then triggers the on-chain checks that carry out trace-gated authorisation.
 
 At the core of this layer lies the \textbf{Non-fungible Token as Account (NFTAA)} concept, as introduced by Valastin et al. \cite{Valastin2024nftaa}.
-NFTAA expands the conventional ERC-721 model to allow an asset to be owned and to own other assets, whereas conventional NFTs only exist on the asset side of the owner-asset relationship. This creates a bidirectional ownership model that is crucial for autonomous agent operation within the Internet of Value. Non-fungible assets and accounts are two previously distinct blockchain primitives that are connected by this basic innovation.
+NFTAA extends the conventional ERC-721 model so that a non-fungible token can be owned and can itself own other assets. Conventional NFTs only exist on the asset side of the owner-asset relationship. This bidirectional ownership model is the property that makes NFTAA a useful account-level primitive for the architecture, although its role here is narrower than the term might suggest. NFTAA is not the value model and does not compute Availability, Durability, or Utility. Those judgements live in the ICVP decision layer of Section \ref{sec:icvp}. NFTAA is the policy-enforcing account-level primitive that contains and constrains value-relevant actions after ICVP has produced an auditable trace and a human has approved the action. The thesis contribution of NFTAA is therefore the concrete realisation of trace-gated authorisation, not the introduction of yet another account abstraction.
 
-According to this paradigm, NFTs may store balances, carry out transactions, and communicate directly with other smart contracts, making them active members of the blockchain ecosystem. In the context of the Internet of Value, this abstraction is very potent, allowing NFTs to function as execution agents, value transporters, and identity containers. By embedding account functionality into NFTs, the architecture gains greater composability and interoperability with decentralized applications.
+Under this paradigm, an NFT can hold balances, accept calls from approved transactions, and interface directly with other smart contracts. NFTAA does not authorise value-relevant action from agent confidence. It authorises only human-approved transactions linked to valid valuation traces and permitted by policy. In the Internet of Value, NFTAA is therefore best understood as a user-owned, policy-enforcing account container rather than as an autonomous actor. It serves as a value container and an identity anchor, not as an execution agent. Embedding account functionality into NFTs gives the architecture composability and interoperability with decentralised applications without ceding custody.
 
-One of the advantages of NFTAA is the ability to operate and own standard fungible and non-fungible assets. This implies that assets stored in an agent-controlled NFTAA can engage in yield farming, lending, borrowing, and derivative markets without needing to be withdrawn. While keeping a distance from the user's primary wallet and facilitating transparent, auditable agent conduct on-chain, an agent overseeing a portfolio of NFTs within an NFTAA can offer liquidity, stake governance tokens, or collateralize them on lending protocols.
+One advantage of NFTAA is that it can hold standard fungible and non-fungible assets. Assets sitting inside a user-owned NFTAA can be used in yield farming, lending, borrowing, or derivative markets without leaving the account. The user keeps custody through the parent NFT. The transaction preparation component proposes the underlying calls (provide liquidity, stake governance tokens, post collateral). Each call settles only when it is linked to a valid trace, has been approved by the user, and is permitted by the NFTAA policy. The account stays separate from the user's primary wallet, which keeps the audit trail clean.
 
-Furthermore, smart contracts ensure that only authorized execution agents can initiate critical state changes by defining access control rules and enforcing invariants. NFTAA offers a number of crucial features that set it apart from current token-bound account standards, especially ERC-6551\cite{Wang2023}, when compared to alternatives like Virtuals that employ ERC-6551.
+Smart contracts at this layer make sure only approved transactions linked to a valid trace can initiate state changes, by encoding access control and invariants. NFTAA differs from existing token-bound account standards, especially ERC-6551 \cite{Wang2023} and the alternatives that build on it, such as Virtuals.
 First, instead of depending on a strict, registry-based deployment architecture, NFTAA enables the integration of specific semantic rules directly into the token contract. ERC-6551 limits the design space for specific behaviors by deploying each token-bound account via a singleton registry with a deterministic address scheme. By enabling developers to create custom account logic inside the NFT contract itself, NFTAA eliminates this restriction and provides fine-grained control over state transitions, access patterns, and execution policies.
 
 Second, NFTAA preserves complete compatibility with current account types. NFTAA can easily communicate with multi-signature accounts, smart contract wallets, proxy contracts, and externally owned accounts (EOAs), in contrast to alternatives that need specific wallet infrastructure. In the context of the Internet of Value, where agents must coordinate with a variety of actors, such as human users, other agents, and smart contract protocols, this interoperability is essential.
 
-Third, NFTAA enables non-custodial ownership of complex asset portfolios. In traditional liquid staking or asset management scenarios, users must delegate control to DAOs, multi-signature schemes, or centralized entities. The NFT holder maintains complete custody while the NFTAA contract handles staked positions, derivative instruments, or collateralized assets on their behalf, therefore eliminating this middleman. This means that in agentic systems, users retain sovereign authority by owning the parent NFT, but execution agents can function independently without the need for reliable third parties.
+Third, NFTAA supports non-custodial ownership of complex asset portfolios. In traditional liquid staking or asset management, users delegate control to DAOs, multi-signature schemes, or centralised entities. The NFT holder keeps custody while the NFTAA contract holds staked positions, derivative instruments, or collateralised assets on their behalf. In an ICVP pipeline, the user keeps sovereign authority by owning the parent NFT. The transaction preparation component operates against the NFTAA only within the boundary set by human approval and account-level policy.
 
-What is the behavior of the NFTAA in agentic systems? The operational needs of autonomous agents in the Internet of Value reveal the alignment between NFTAA and agentic architectures.
-The NFT represents both the agent's identity and its resource container, thus NFTAA may be thought of as an agent-controlled but user-owned account.
-The execution agent does not work from a shared, multipurpose wallet when a valuation agent evaluates an asset, a decision agent suggests a transaction, and a human authorizes it. Rather, it uses a specific NFTAA instance to function. This encapsulation offers a number of advantages:
+How does NFTAA behave inside an ICVP pipeline? The NFT is both the pipeline's on-chain identity and its resource container. NFTAA is a user-owned account operated against by an approved trace, not by a free-running agent. The transaction preparation component does not draw from a shared, multipurpose wallet when the valuation and decision components produce a trace and a human approves a candidate transaction. It draws from a specific NFTAA instance, and the on-chain policy of that NFTAA enforces the trace-gated authorisation property of Section \ref{sec:proof-targets}. This encapsulation offers a number of advantages:
 
 \begin{itemize}
-    \item \textbf{Isolation and Security:} Each agent operates within its own NFTAA context, isolating its actions and state from other agents. This containment reduces the risk of cross-agent interference or exploitation, enhancing overall system security.
-    \item \textbf{Traceability and Accountability:} All actions taken by the agent are recorded under the NFTAA's address, creating a clear audit trail that links decisions to specific agent identities. This transparency is vital for trust in autonomous systems.
-    \item \textbf{Composability and Flexibility:} NFTAA's compatibility with existing token standards allows agents to interact with a wide range of assets and protocols without requiring specialized infrastructure. Agents can seamlessly manage fungible tokens, stake assets, or engage in DeFi activities as needed.
+    \item \textbf{Isolation and Security:} Each pipeline operates against its own NFTAA, which keeps its assets, policy, and history separate from other pipelines. The blast radius of a compromised component is bounded by the policy of that single NFTAA.
+    \item \textbf{Traceability and Accountability:} Every settled action is recorded under the NFTAA's address and linked to the valuation trace and human approval that authorised it. The audit trail ties on-chain state changes back to the trace, the approver, and the policy version that allowed the call.
+    \item \textbf{Composability and Flexibility:} NFTAA stays compatible with existing token standards, so approved transactions can interact with a wide range of assets and protocols without specialised infrastructure. Holding fungible tokens, staking, and DeFi positions all run through the same policy boundary.
 \end{itemize}
 
-In the context of our architecture, NFTAA serves as the settlement primitive for agent-mediated transactions. The agentic layer uses valuation and decision agents to handle user intent expressed through the local layer. However, an NFTAA under the execution agent's authority is used to carry out the actual execution. Additional control policies are set up in the NFTAA contract. These policies make sure that the agent's activities stay in line with user intent and system standards by enforcing restrictions like expenditure caps, permitted protocols, and value verification requirements. This architecture guarantees that the on-chain NFTAA contract operates as a cryptoeconomic guardrail, refusing to execute transactions that break pre-committed policies, even in the event that an execution agent is corrupted or exhibits unexpected behavior.
+In this architecture, NFTAA is the enforcement boundary. The agentic layer uses the valuation and decision components to interpret intent stated through the local layer and to produce an auditable valuation trace. The transaction preparation component constructs a candidate transaction linked to the trace and submits it for human approval. Only after a human approves does the candidate reach the NFTAA contract, which then checks it against the account-level policy before settlement. The set of NFTAA-enforced checks corresponds directly to the trace-gated authorisation property of Section \ref{sec:proof-targets}. NFTAA enforces the allowed actor, the allowed asset, the allowed target contract, the allowed function selector, the maximum amount, the allowed chain, the deadline, the nonce and replay protection, the revocation status of the policy, the presence of human approval, and the link to a valid valuation trace. NFTAA does not enforce the evidence projection $P_i$, the dimension instantiation $\Phi_i$, the correctness of language-model reasoning, or any subjective value judgement. Those belong to ICVP and to human approval. Under this separation, NFTAA is a cryptoeconomic guardrail in a precise sense. It refuses transactions that break pre-committed policies or that are not linked to a valid valuation trace, even when a component upstream is misconfigured or compromised.
 
-From an implementation perspective, NFTAA leverages standard NFT implementations\footnote{e.g., ERC-721, ERC-1155} as its base, extending them with account-like functionality. This includes methods for executing transactions, managing balances, and enforcing access control. The NFTAA contract can be deployed on any EVM-compatible chain, ensuring broad applicability across the Internet of Value ecosystem. Additionally, NFTAA instances can be dynamically created by the agentic layer as new agents are instantiated, enabling scalable deployment of autonomous agents without manual intervention. Additionally, the NFTAA contract can be expanded to comply with the emerging ERC-8004 standard for Trustless Agents.
+From an implementation point of view, NFTAA builds on standard NFT implementations\footnote{e.g., ERC-721, ERC-1155}, extending them with account-like functionality. This adds methods for accepting calls, holding balances, and enforcing access control. The NFTAA contract can be deployed on any EVM-compatible chain. Instances can be created on demand as new pipelines come online, so scaling out additional pipelines does not require manual contract deployment. The NFTAA contract can also be extended to comply with the emerging ERC-8004 standard for trustless agents.
 
-Due to its flexible nature, NFTAA can be owned by various entities, including individuals, DAOs, or even other agents. This versatility allows for complex ownership structures, such as multi-agent collaborations or hierarchical control schemes, where multiple agents coordinate actions under a shared NFTAA umbrella.
+Because NFTAA is just an account container, it can be owned by individuals, DAOs, or other accounts. This supports complex ownership structures (multi-party collaborations, hierarchical control schemes) where several stakeholders share a single NFTAA umbrella but each action still goes through its own approval and policy check.
 
-However, how do we trigger the execution from the agentic layer to the on-chain layer? The process begins in the local layer when a user expresses their goal through the user interface, which will be introduced in the next section.
+How does an action move from the agentic layer to the on-chain layer? It starts in the local layer, where a user states their goal through the user interface introduced in the next section.
 
 \subsection{Local Layer}
 
-As the architecture's human-agent interface, the local layer gives end users the ability to communicate intent, keep control, and preserve sovereignty over system operations. The local layer prioritizes usability, accountability, and security, whereas the agentic and on-chain layers deal with cognition and settlement. The prompt manager, authentication and authorization procedures, and user interface make up its three main parts.
+The local layer is the human-agent interface. The agentic layer reasons about evidence and the on-chain layer settles actions. The local layer is where the user states intent, reviews the trace, and approves or rejects a specific candidate transaction. It has three parts: the user interface, the authentication and authorisation block, and the prompt manager.
 
-Human participants can access the Internet of Value through the user interface. Its function is to abstract the technical intricacies of blockchain interactions and agentic reasoning, allowing users to express their meaning in either a simpler, organized form or in normal language. Rather of needing to understand contract addresses, token standards, or transaction parameters, the user may make simple requests like "buy this token if it falls below ten ether" or "evaluate the value of NFT \#1419." Such phrases are converted by the interface into a standardized representation that may be used by subsequent operations. The interface promotes inclusiveness and lowers the possibility of mistakes in manual transaction creation by decreasing the entrance barrier and increasing involvement in decentralized economies. In order to keep the user informed about the logic and actions of the system, the interface also offers visible feedback in the form of audit trails, confidence scores, and structured suggestions.
+The user interface is how human participants reach the rest of the architecture. It hides contract addresses, token standards, and transaction parameters behind a request the user can write in either structured form or plain language. Examples are "buy this token if it falls below ten ether" or "evaluate the value of NFT \#1419." The interface converts the request into a structured representation that the agentic layer can consume. It also shows the user what the system did with the request, including the valuation trace, the confidence value, and the candidate transaction, so that the user approves a specific action rather than a recommendation in general.
 
+Authentication and authorisation are kept separate at this layer. Authentication checks that the actor is who they claim to be, through a cryptographic wallet, a decentralised identity, or a multi-factor flow. Authorisation checks what the actor is allowed to do under the account's policy, which is enforced on-chain by NFTAA. The two checks are deliberately separated so that one can be tightened without affecting the other. For instance, a user can be permitted to request valuations but not to authorise transfers above a given size without a second factor. Approvals are cryptographically tied to the user, which is what gives non-repudiation on the on-chain record.
 
-Strong authentication and permission procedures are essential at the local layer due to the sensitivity of carrying out blockchain transactions. By using cryptographic wallets, decentralized identity frameworks, or multi-factor authentication techniques, authentication makes sure that only authorized users may access the system. By specifying what a certain user is allowed to do, authorization expands this protection. For example, unless more verification is given, a user could be permitted to seek asset appraisals but not to carry out token transfers. This division of authorization and authentication minimizes attack surfaces while maintaining usability in accordance with least privilege principles. Since all authorized activities can be cryptographically linked to the starting user, the system also provides non-repudiation, which is essential for accountability in a decentralized setting.
+The prompt manager turns a checked natural-language request into a structured input for the agentic layer. It validates the request against the system's schema, fills in contextual metadata such as recorded intent and execution limits, and emits an MCP-compatible call so that the same input produces the same sequence of tool invocations on replay. The manager records every prompt and the structured input it produced, which is what makes the local-layer entry reproducible and inspectable from outside. Requests that are malformed or that do not pass schema validation are rejected at this stage rather than passed down to the agentic layer.
 
-The task of converting human intent into deterministic machine-readable instructions falls to the prompt manager. This element is essential for bridging the gap between predictable agent behavior and natural language input. It converts the user's request into a prompt that complies with the Model Context Protocol (MCP) after verifying it against the system's schema. This ensures that when the same prompt is provided to the agentic layer, it always produces the same sequence of tool invocations and responses. Additionally, the prompt manager incorporates contextual metadata into the created prompt, including user intent, previous interaction history, and execution limitations. Reproducibility and accountability are supported by keeping an audit trail of all prompts and their associated outputs, which enables external reviewers to confirm that actions were carried out accurately. Furthermore, the prompt manager prevents the agentic layer from being pushed into dangerous or inadvertent actions by rejecting requests that are faulty or illegal.
+\subsection{ICVP under public-resource stewardship intent}
 
-\subsection{Usage of Agents in on-chain governance}
+In on-chain governance, value cannot be framed as private acquisition. A treasury proposal asks the community to allocate a shared resource toward a contribution. The intent in ICVP terms is public-resource stewardship, not holding, trading, or collateralisation. Under this intent, Availability is instantiated as scarcity or under-supply of the proposed contribution and the opportunity cost of the requested allocation. Durability is the sustainability and maintainability of the deliverables and of the funded team. Utility is ecosystem benefit, public-good impact, and strategic alignment. The valuation taxonomy is the same. Its content is reset by the intent.
 
-In traditional blockchain-based governance systems, human actors (token holders, delegates, and DAO committees) propose, vote, and execute governance decisions. These processes rely heavily on manual intervention, periodic coordination, and human diligence. As governance complexity increases (across multi-chain protocols, cross-project dependencies, and frequent parameter upgrades), this manual model becomes a bottleneck. Agentic systems, when integrated into the governance plane, promise to automate, optimize, and scale governance in a trust-minimized and auditable way.
+In governance scenarios, ICVP evaluates proposals under public-resource stewardship intent, not under a private acquisition intent. The goal is not to automate voting authority. It is to make proposal evaluation more scalable, auditable, and consistent while keeping human governance authority. As treasury volume grows beyond what individual voters can review carefully, agentic decision support is useful because it produces traces that voters inspect, not because it replaces them.
 
-In this sub-section, we will expand on a real-world use case of using our state-of-the-art architecture for exchanging assets among entities in the Internet of Value, with a primary focus on Polkadot.
-At the time of writing, the Polkadot treasury holds more than 10.8 million DOT\footnote{Around ~43 million USD}. That could be distributed among people. However, many people claim that the proposal's pricing is unjust; therefore, the outflow of funds and its overall value seem mispriced.
-An agentic system could be used to evaluate the proposals based on the contextual asset value framework. Therefore, each proposal would be evaluated based on its availability, durability, and utility. The decision agent would then analyze the data and recommend whether to approve or reject the proposal. The execution agent would then execute the decision on-chain.
+The Polkadot OpenGov treasury is a useful example. At the time of writing it holds more than 10.8 million DOT\footnote{Around 43 million USD.}. Proposal volume routinely outpaces what a single voter can review carefully. Under ICVP, a Submitted event on the Referenda pallet\footnote{https://polkadot.subscan.io/event?module=referenda\&event_id=Submitted} can trigger a valuation pipeline that retrieves the proposal text, requested amount, milestone schedule, contributor history, comparable past proposals, and applicable W3F voting guidance\footnote{https://medium.com/web3foundation/w3f-opengov-proposal-voting-guidelines-543ff7faba03}. The valuation component instantiates $A_i$, $D_i$, and $U_i$ for the proposal under stewardship intent. The decision component assembles a trace and emits one of $\textit{proceed}$ (recommend supporting), $\textit{defer}$ (recommend abstaining when evidence is missing or conflicting), or $\textit{decline}$ (recommend opposing), with confidence and provenance. The voter receives the trace and decides.
 
-In practice, how does it operate? Assume that the Polkadot Treasury receives a fresh proposal. The Submitted event on the Referenda pallet\footnote{https://polkadot.subscan.io/event?module=referenda&event_id=Submitted} creates an agent using a blockchain-in-the-loop method.The proposal's budget, schedule, and anticipated results would then be gathered by the valuation agency. After analyzing the information, the decision agent would suggest whether or not to accept the proposition. Execute the decision on-chain when it has been approved by a human.
+The agent in this loop may retrieve proposal evidence, summarise contributor history, identify risks, map evidence into governance-instantiated A/D/U, emit a $\textit{proceed}$, $\textit{defer}$, or $\textit{decline}$ recommendation, and produce an audit trace. The agent may not vote on its own, replace voters, claim objective truth, or move treasury funds without human approval. We use \emph{auditable}, \emph{evidence-based}, and \emph{traceable} in preference to \emph{objective}. Expert reviewers and W3F guidelines are reference judgements, not ground truth.
 
-This approach has several benefits. Firstly, it would ensure that proposals are evaluated based on objective criteria, rather than subjective opinions. Secondly, it would free up human actors to concentrate on more strategic duties by lessening their burden. Lastly, because the final judgment is recorded on-chain, it would improve the governance process's accountability and transparency.
-
-This use case demonstrates how agentic systems might improve blockchain governance by automating decision-making procedures while upholding transparency and trust. By leveraging the strengths of both human judgment and autonomous reasoning, such systems can help decentralized communities manage resources more effectively in an increasingly complex ecosystem.
-
-This creates a strong loop between human intent, autonomous reasoning, and decentralized settlement, enabling more efficient and scalable governance in the Internet of Value.
-
-However, many open questions and challenges remain to be addressed. For example, how can we ensure the agents align with the community's values and goals? How to prevent manipulation or gaming of the system? How to balance automation with human oversight? These are all valid questions that we will explain in the following paragraphs.
-As we have learned so far, the decision agent produces structured output that includes a confidence score and reasoning. This allows human actors to review the agent's recommendations and make informed decisions. Additionally, an agent can consider similar proposals from the past when making recommendations. The agent may learn from prior achievements and avoid making the same mistakes thanks to this historical background. A local layer can be used to offer further context about the proposal, such as a voting suggestion from W3F\footnote{https://medium.com/web3foundation/w3f-opengov-proposal-voting-guidelines-543ff7faba03}.
+This framing is narrower than full automation but more defensible. Voters keep governance authority. The trace makes the recommendation inspectable, including the evidence excluded by $P_i$ and the gaps that triggered $\textit{defer}$. A historical record of validated traces, kept under one trace schema, lets future evaluations look up comparable past proposals instead of leaning on any one reviewer's memory. Open issues remain. How do we keep agent recommendations aligned with community values. How do we resist manipulation or gaming of the evidence space. How do we balance scalable evaluation with human oversight. The architecture answers these structurally. The trace exposes its evidence and its gaps, deterministic validation refuses incomplete traces, and final voting authority stays with human participants or formally authorised governance actors.
 
 
 
-\subsection{Threat model and safety assumptions}
-\label{sec:threat-model}
+\subsection{Implementation-level safety notes}
+\label{sec:impl-safety-notes}
 
-The architecture assumes that on-chain contract execution is deterministic and that the resulting state transitions are auditable through standard block explorers and event logs. It does not assume that off-chain data is always correct, that retrieved content is benign, or that the language models driving the agentic layer are immune to adversarial prompts.
+The threat model and trust assumptions for the architecture are stated in Section \ref{sec:threat-model}. This subsection records a few implementation-level points that follow from that model and that are easier to discuss next to the architecture than next to the table.
 
-We identify five main threats. The first is malicious or stale data, where a price feed, marketplace API, or block explorer returns values that disagree with the true on-chain state. The second is prompt injection through retrieved content, where text fetched from a forum, proposal, or marketplace description carries instructions that try to subvert the valuation or decision agent. The third is a compromised MCP adapter, where a tool that the agentic layer relies on is replaced or modified to return crafted outputs. The fourth is malformed transaction construction, where an execution agent assembles a transaction that passes local validation but interacts with an unintended contract or method. The fifth is user approval of misleading recommendations, where the local layer accurately reports the agent's output but the underlying reasoning is wrong.
-
-The architecture addresses these threats at four points. Provenance metadata recorded by the data layer makes it possible to detect stale or inconsistent inputs after the fact. Schema validation in the agentic layer rejects malformed structured outputs and bounds the influence of injected text on downstream stages. Transaction simulation, spending limits, and protocol allowlists in the on-chain layer constrain what an execution agent can do even if its reasoning is wrong. Human approval in the local layer keeps every value-transferring action under user oversight and makes the agent a decision-support component rather than an autonomous actor. None of these mechanisms is sufficient on its own, but together they reduce the trust placed in any single component.
+The architecture assumes on-chain contract execution is deterministic and that the resulting state transitions can be audited through standard block explorers and event logs. It does not assume off-chain data is always correct, that retrieved content is benign, or that the language model driving the proposer is robust to adversarial prompts. The four points at which the architecture acts on the threats listed in Section \ref{sec:threat-model} are the data layer, the agentic layer, the transaction preparation component, and the local layer. Provenance metadata recorded by the data layer makes stale or inconsistent inputs detectable after the fact, which is what T1 and T2 turn on. Schema validation in the agentic layer rejects malformed structured outputs and bounds the influence of injected text on downstream stages, which is the mechanism behind T3. Transaction simulation, spending limits, protocol allowlists, and the NFTAA policy bound what a candidate transaction can do even when the reasoning behind it is wrong, which covers T7 and T9. Human approval at the local layer keeps every value-relevant action under user oversight, which is what reduces the consequences of T4 and T8. None of these mechanisms is enough on its own. They reduce the trust placed in any single component when they run together.
 
 \subsection{Advancing Beyond the State of the Art}
 %  \label{sec:advancing-sota}
 
-We have addressed the basic problem of linking human intent with on-chain execution by presenting a methodical methodology for integrating agentic technologies with the Internet of Value. The architecture is based on three pillars that together allow asset appraisal and transaction execution to be autonomous, repeatable, and verifiable.
+The design rests on three contributions. Together they turn agent-mediated value-relevant action in the Internet of Value into a process that records its evidence, refuses confident decisions on incomplete evidence, and only settles inside a policy boundary.
 
-Formalizing asset value as a function of availability, durability, and utility is the first pillar. We give agents solid context that acts as an objective foundation for decision-making by basing value evaluation on quantifiable on-chain and off-chain attributes rather than subjective judgment. This system maintains interpretability and auditability while adapting to a variety of user purposes, from long-term preservation to speculative trading, thanks to the intent-dependent weighting mechanism.
+The first contribution is the ICVP decision model itself. ICVP treats stated intent as a projection over heterogeneous evidence spaces and instantiates Availability, Durability, and Utility for the asset class and the action context rather than fixing them in advance. As a result, the same valuation taxonomy can be applied across an NFT acquired for community access, a Pudgy Penguin used as DeFi collateral, stETH held for productive yield, stETH exited for liquidity reasons, and a Polkadot OpenGov treasury proposal evaluated under public-resource stewardship, without committing to asset-specific value formulas in advance. The output is a valuation trace rather than a narrative explanation, which renders the model auditable.
 
-The second pillar is the modular agentic architecture that decomposes cognition into specialized components: valuation, decision, and execution agents. Because each agent concentrates on a distinct aspect of the reasoning process, issues can be clearly separated, debugging is made simpler, and autonomous growth is possible. The decision agent contextualizes these metrics based on user intent, the execution agent operationalizes authorized activities on-chain, and the valuation agent specializes in data collection and metric calculation. As the ecosystem develops, plug-and-play integration of additional models or data sources is made possible by this modularity, which also improves maintainability.
+The second contribution is the agentic method that puts ICVP into practice. Cognition is decomposed into evidence acquisition, intent-specific projection and instantiation, trace construction with deterministic validation, and policy-constrained transaction preparation. Each component handles a distinct part of the pipeline, which keeps responsibilities separable, simplifies replacement of any single component, and makes the overall behaviour easier to inspect. Plug-and-play integration of additional models or data sources is therefore a property of the method rather than an afterthought of the implementation.
 
-The third pillar and key innovation of this design is the use of Non-Fungible Token as Account (NFTAA) as the execution primitive. NFTAA allows for the direct embedding of custom semantic rules into token contracts, in contrast to token-bound accounts like ERC-6551 that depend on strict registry-based deployment. With programmable limits, risk isolation, and on-chain policy enforcement, this flexibility enables agents to function as autonomous economic entities. Without needing off-chain trust assumptions, an NFTAA may concurrently represent agent identification, act as a resource container for managed assets, and impose spending limitations, metadata verification requirements, and protocol allowlists.
+The third contribution is the Non-Fungible Token as Account (NFTAA) primitive in its precise role as the trace-gated enforcement layer. NFTAA allows custom semantic rules to be embedded directly in the token contract, in contrast to registry-based token-bound accounts such as ERC-6551 that constrain the design space. We use this flexibility to encode the trace-gated authorisation checks of Section \ref{sec:proof-targets} at the account level, so that an action can settle on-chain only when it is linked to a valid valuation trace, has been approved by a human, and falls inside a permitting policy. NFTAA does not compute value. It is the account-level realisation of the execution boundary that the formal model needs.
 
-Additionally, the design highlights a number of unresolved issues that need more research. Currently, ethical and sustainable aspects are not included in the value framework, despite the fact that they could be crucial for particular communities or legal situations. Instead of being learnt from user behavior, the weights in intent profiles are intentionally set, which presents a chance for machine learning optimization. Although the security model makes the assumption that MCP adapters and data sources are reliable, a thorough threat model has to take into account hostile data providers, hacked API endpoints, and large-scale quick injection attacks.
-% The governance application raises questions about legitimacy and accountability when agents influence resource allocation decisions that affect entire ecosystems.
+The design also makes its open issues explicit. Ethical and sustainability factors are not yet first-class evidence categories, and they could matter for specific communities or regulatory settings. The intent profiles used in the operational aggregation $g_i$ are set rather than learned from user behaviour, which leaves room for learning from validated traces. The threat model assumes the MCP adapters and the data sources are reliable. Adversarial data providers, compromised endpoints, and prompt injection in retrieved content remain real concerns and are the reason the safeguards in Section \ref{sec:threat-model} exist.
 
-Compared with existing blockchain-agent platforms reviewed in Chapter~\ref{sec:relatedwork}, the proposed architecture differs along three axes. First, it makes asset valuation explicit and multi-dimensional rather than collapsing it into market price. Second, it separates valuation, decision, and execution into distinct agents rather than fusing them into a single pipeline tied to one chain or one task. Third, it places agent policy at the account level through the NFTAA primitive, rather than relying on off-chain glue code to enforce constraints. Whether these design choices actually improve reliability, interpretability, and execution safety relative to the surveyed platforms is not claimed here. Chapter~\ref{sec:evaluation} evaluates each of these axes against expert assessments and operational metrics in two scenarios.
+Compared with existing blockchain-agent platforms reviewed in Chapter~\ref{sec:relatedwork}, the proposed architecture differs along three axes. First, it makes value interpretation intent-conditioned rather than collapsing it into a single visible signal or into fixed cross-context weights. Second, it separates evidence acquisition, projection, decision, transaction preparation, and policy-gated settlement into distinct components linked by an auditable trace, instead of fusing them into a single pipeline tied to one chain or one task. Third, it places trace-gated authorisation at the account level through the NFTAA primitive, rather than relying on off-chain glue code to enforce constraints. Whether these design choices actually improve decision quality, evidence relevance, and auditability relative to single-dimensional and fixed-weight valuation baselines is not claimed here. Chapter~\ref{sec:evaluation} evaluates this question across NFT, productive-asset, and treasury-governance regimes.
