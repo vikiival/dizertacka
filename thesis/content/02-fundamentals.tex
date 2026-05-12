@@ -7,7 +7,7 @@ However, the fundamental difference lies in the trust model. A NoSQL database op
 The key properties that distinguish blockchain from traditional distributed databases are \cite{Zheng2017}:
 
 \begin{enumerate}
-    \item \textbf{Immutability} -- once data are committed to the chain, it cannot be altered or deleted without invalidating subsequent blocks, providing a tamper-evident audit trail.
+    \item \textbf{Immutability} -- once data is committed to the chain, it cannot be altered or deleted without invalidating subsequent blocks, providing a tamper-evident audit trail.
     \item \textbf{Trust minimization} -- participants can verify the correctness of state transitions independently through cryptographic proofs and consensus, eliminating the need to trust a central authority.
     \item \textbf{Accessibility} -- depending on the network type (permissionless, permissioned, or semi-permissioned), participants can read from and write to the ledger according to the network's access policy.
     \item \textbf{Decentralization} -- the ledger is replicated across geographically distributed nodes, eliminating single points of failure and censorship.
@@ -15,7 +15,7 @@ The key properties that distinguish blockchain from traditional distributed data
 
 When we want to add or modify the data from the blockchain, we need to create new updates to the chain called a transaction.
 These updates are done in batches, so-called blocks, and each block consists of many transactions that can modify the state of the blockchain.
-Each blockchain stores different data in the block for the correct functioning. These data depends on the selected consensus algorithm or the implementation of the blockchain.
+Each blockchain stores different data in the block for correct functioning. This data depends on the selected consensus algorithm or the implementation of the blockchain.
 In general, the data structure of the blockchain is the following:
 
 \begin{itemize}
@@ -34,7 +34,7 @@ This algorithm is known as the consensus algorithm. Formally, a consensus protoc
 In the area of blockchain, there are many types of consensus algorithms. The most common are \cite{Bach2018}:
 
 \begin{itemize}
-  \item[ ] Proof-of-Work (PoW) - The idea behind the Proof-of-Work is that to make a valid block; we need to use extensive computational resources to find a correct value in the cryptographical puzzle.
+  \item[ ] Proof-of-Work (PoW) - The idea behind Proof-of-Work is that to make a valid block, we need to use extensive computational resources to find a correct value in the cryptographic puzzle.
   \item[ ] Proof-of-Stake (PoS) - Uses the participants' stake to decide the block's validity.
   \item[ ] Nominated Proof-of-Stake (NPoS) - a Proof-of-Stake with the possibility of other participants nominating their stake to the block validator
   Therefore, the block reward is split between the validator and other nominators by the ratio of their stake. The NPOS is used in the Polkadot and their parachains.
@@ -67,9 +67,9 @@ Smart contracts are typically written in a Turing-complete language\footnote{In 
 By default, the smart contract code is immutable. However, a proxy contract can be used to change the code of the contract \cite{wood2014ethereum}.
 
 The first blockchain that brought the concept of smart contracts is Ethereum. In high overview, the Ethereum blockchain has an Ethereum Virtual Machine (EVM) that is used to run smart contracts.
-Thanks to the Turing completeness of the EVM, when we want to write a smart contract can use one of the high-level programming languages like Solidity or Vyper \cite{antonopoulos2018mastering}.
+Thanks to the Turing completeness of the EVM, when we want to write a smart contract, we can use one of the high-level programming languages like Solidity or Vyper \cite{antonopoulos2018mastering}.
 However, the EVM does not directly execute code from the smart contract language. Instead, the code is compiled into the EVM bytecode.
-To make the computation sustainable, when we want to make a transaction, we need to pay a fee defined by the gas \cite{Leonardos2021, Roughgarden2020}. Using gas serves as the fee for miners to include the transaction into block. Additionally a tip can be included for faster transaction processing.
+To make the computation sustainable, when we want to make a transaction, we need to pay a fee defined by the gas \cite{Leonardos2021, Roughgarden2020}. Gas serves as the fee for miners to include the transaction in a block. Additionally, a tip can be included for faster transaction processing.
 As every code byte requires a fee to be executed, we are trying to make the smart contract as efficient as possible. How to do that?
 To write compelling and safe smart contracts, communities created
 open-source libraries like OpenZeppelin\footnote{https://github.com/OpenZeppelin/openzeppelin-contracts} or Solmate\footnote{https://github.com/transmissions11/solmate} that can help us to complete our goal.
