@@ -84,6 +84,15 @@ g_i(A_i, D_i, U_i) = w_A(i) \cdot A_i + w_D(i) \cdot D_i + w_U(i) \cdot U_i,
 \end{equation}
 with weights $w_A(i), w_D(i), w_U(i) \in [0, 1]$ and $w_A(i) + w_D(i) + w_U(i) = 1$, and with each $A_i, D_i, U_i \in [0, 10]$ for interpretability. We use this aggregation in the implementation, but we treat it as an aggregator over already intent-instantiated dimensions, not as the value model itself. Aggregation alone, without the projection $P_i$ and the instantiation $\Phi_i$, reduces to a fixed-weight scoring heuristic of the kind we evaluate against as a baseline in Chapter \ref{sec:evaluation}.
 
+Figure \ref{fig:icvp-formal-flow} renders the formal pipeline. Intent $i$ feeds three operators ($P_i$, $\Phi_i$, $g_i$), each rewriting a different stage of the pipeline, and the trace $\tau$ aggregates evidence, instantiated dimensions, and the decision at the end.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth,height=0.72\textheight,keepaspectratio]{images/icvp-formal-flow.png}
+    \caption{Formal flow of ICVP: from asset, evidence, and intent through projection $P_i$, instantiation $\Phi_i$, and aggregation $g_i$ to the decision $d$ and trace $\tau$.}
+    \label{fig:icvp-formal-flow}
+\end{figure}
+
 The full output of ICVP for asset $a$ under intent $i$ given evidence $E$ is
 \begin{equation}
 \textsc{ICVP}(a, i, E) = (F_i, A_i, D_i, U_i, V_i, d, \tau),
@@ -130,6 +139,15 @@ The freshness predicates are evaluated at the authorisation moment, not at the t
 This couples the formal value model to policy-constrained execution. The proof can be carried out over an abstract state machine with active policies, schema versions, evidence requirements with per-category TTLs, valuation traces, approvals, nonces, the current time, and authorised and executed transactions. The key transition is the authorisation transition, which fires at time $t$ and requires a valid trace with complete evidence, a \textit{proceed} decision, a trace-matching transaction, a permitting policy, evidence still fresh at $t$, a trace not yet expired at $t$, a fresh nonce, and a non-revoked policy. The trace-built-then-stale case is handled explicitly. A trace $\tau$ that satisfied $\textsc{FreshEvidence}$ when constructed at time $t_0$ but no longer satisfies $\textsc{FreshEvidence}$ at $t > t_0$ falls out of the authorisation transition, because the predicate is evaluated against $t$. The trace can be rebuilt, but it cannot be replayed past its evidence horizon. Section \ref{sec:trace-commitment} specifies the commitment scheme that realises the freshness predicate on-chain, and Section \ref{sec:onchain-layer} returns to this property and specifies the NFTAA-level checks that realise it. This property contains threats T2, T5, T6, T7, T8, T9, and T10 from the threat register in Section \ref{sec:threat-model}, in the sense that stale evidence, manipulated oracles, incomplete traces, transaction mismatch, a compromised agent process, attempts to bypass NFTAA, and schema substitution cannot lead to authorisation.
 
 We do not prove that an authorised transaction is the right transaction. We prove that no transaction can be authorised without a valid trace, fresh evidence at authorisation time, a recognised schema version, and a permitting policy. The narrower claim is the one we believe the architecture can defensibly support, even when the agent acts only as an evidence interpreter and recommendation generator.
+
+Figure \ref{fig:safety-properties} renders the two safety properties as a chain of guards. Each guard labels the threats from Section \ref{sec:threat-model} that it blocks. Evidence-Completeness Safety is enforced by the first three guards. Trace-Gated Authorisation is enforced by the remaining guards, which run at authorisation time inside the NFTAA policy check.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth,height=0.72\textheight,keepaspectratio]{images/safety-properties.png}
+    \caption{Safety properties as a guard chain from a candidate transaction to settlement, annotated with the threats each guard blocks.}
+    \label{fig:safety-properties}
+\end{figure}
 
 \subsubsection{RequiredEvidence schemas as authored artefacts}
 \label{sec:required-evidence-schemas}
