@@ -237,9 +237,9 @@ The system needs the following capabilities to analyse assets and prepare decisi
 
 The architecture connects human intent with blockchain settlement through three operational layers (local, agentic, and on-chain), supported by an external data layer that supplies market, metadata, governance, and oracle inputs. The pipeline runs in one direction: Intent $\rightarrow$ ICVP $\rightarrow$ Valuation Trace $\rightarrow$ Human Approval $\rightarrow$ NFTAA Policy Check $\rightarrow$ On-chain Execution. The local layer is where a participant states intent in natural language, which is verified and turned into a structured input. The agentic layer retrieves the projected evidence, instantiates Availability, Durability, and Utility under the stated intent, assembles a valuation trace, and runs deterministic validation. After a human approves a specific candidate transaction linked to a valid trace, the transaction preparation component submits it to the on-chain layer. The on-chain layer, anchored by NFTAA, runs the policy check and settles the action only when the trace, the human approval, and the policy all permit it. The data layer is an external dependency, not a fourth execution layer. It does not reason about value and does not move funds. It supplies the inputs the agentic layer reads.
 
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\columnwidth]{images/architecture-new.png}
+    \includegraphics[width=\columnwidth,height=0.72\textheight,keepaspectratio]{images/architecture-new.png}
     \caption{Architecture of the agentic system: four areas (local, agentic, external data, on-chain) with the valuation trace $\tau$ as the central artefact and human approval as an explicit gate before NFTAA-enforced settlement.}
     \label{fig:architecture}
 \end{figure}
@@ -252,9 +252,9 @@ The data layer matters because the rest of the architecture relies on what it su
 
 The interaction between these four layers follows one cycle. The process starts with the user stating intent at the local layer. The intent is verified, recorded, and turned into a structured input. The agentic layer then runs the three components in sequence. The valuation component retrieves the evidence permitted by the intent-specific projection $P_i$ from the data layer and instantiates Availability, Durability, and Utility under that intent. The decision component assembles the valuation trace, attaches the decision label, and runs deterministic validation. The transaction preparation component constructs and simulates a candidate transaction linked to the trace and submits it for human approval. The cycle closes at the on-chain layer, where the NFTAA policy check decides whether the approved transaction settles. Figure \ref{fig:icvp-pipeline-sequence} renders this cycle as a sequence diagram, including the rejection path that reopens the trace when the on-chain policy refuses a candidate transaction.
 
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\columnwidth]{images/icvp-pipeline-sequence.png}
+    \includegraphics[width=\columnwidth,height=0.72\textheight,keepaspectratio]{images/icvp-pipeline-sequence.png}
     \caption{End-to-end ICVP pipeline: from stated intent to NFTAA-gated settlement.}
     \label{fig:icvp-pipeline-sequence}
 \end{figure}
@@ -266,9 +266,9 @@ The result is a modular system with clearly separated concerns. The on-chain lay
 
 The agentic layer is a core component of the architecture. It sits between human intent, raw blockchain data, and the on-chain settlement layer. The on-chain layer is deterministic and immutable. The agentic layer adds the reasoning step needed to interpret evidence under intent, but it does not authorise actions. The valuation component turns heterogeneous data into instantiated $A_i$, $D_i$, and $U_i$ under intent. The decision component assembles the trace and runs deterministic validation. The transaction preparation component constructs and simulates a candidate transaction and submits it for human approval. MCP adapters give all three a reproducible interface to external tools. Together they form a loop that starts with user intent, ends with a human-approved transaction, and lets NFTAA decide whether the action settles on-chain.
 
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\columnwidth]{images/icvp-valuation-internal.png}
+    \includegraphics[width=\columnwidth,height=0.62\textheight,keepaspectratio]{images/icvp-valuation-internal.png}
     \caption{Internal view of the valuation component: evidence retrieval via MCP adapters, projection $P_i$, instantiation $\Phi_i$, and parallel emission of $A_i$, $D_i$, $U_i$ with the insufficient-evidence path.}
     \label{fig:agentic-sequence}
 \end{figure}
@@ -331,9 +331,9 @@ valuation_trace = {
 
 Figure \ref{fig:icvp-domain-model} ties these fields back to the broader vocabulary of the architecture. The conceptual model shows how Intent, Asset, Projection, Evidence with Provenance, the instantiated Dimensions, the Trace, the Decision, Human Approval, the Candidate Transaction, NFTAA, and Policy relate. The trace is the central entity that links evidence interpretation on one side to human approval and on-chain enforcement on the other.
 
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\columnwidth]{images/icvp-domain-model.png}
+    \includegraphics[width=\columnwidth,height=0.72\textheight,keepaspectratio]{images/icvp-domain-model.png}
     \caption{Conceptual model of the core entities and their relationships.}
     \label{fig:icvp-domain-model}
 \end{figure}
