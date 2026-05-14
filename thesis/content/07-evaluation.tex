@@ -7,9 +7,9 @@ This chapter sets out the evaluation design for Intent-Conditioned Value Project
 
 The evaluation is a controlled framework-validation benchmark. Its purpose is not to prove that ICVP is universally optimal, that value has an objective ground truth, or that a language model is correct. It tests the narrower claim that the mechanisms proposed in this thesis improve decision support on tasks where intent changes what evidence matters and what the valuation dimensions mean. The benchmark supports ICVP if the full configuration outperforms reduced alternatives that remove its load-bearing mechanisms.
 
-The evaluation uses twelve tasks distributed across three regimes. Four tasks address a Pudgy Penguin NFT held under different intents, four tasks address stETH as a productive asset, and four tasks address Polkadot OpenGov treasury proposals under public-resource stewardship. Each task fixes an asset or proposal, a stated intent, and the action under consideration. The set is small enough to evaluate carefully and broad enough to expose whether ICVP generalises beyond a single asset class. The fixed task set also makes the comparison controlled: the asset, intent, action, evidence snapshot, model family, prompt budget, and scoring rules are held constant within each task while the valuation configuration is varied.
+The evaluation uses twelve tasks distributed across three domains. Four tasks address a Pudgy Penguin NFT held under different intents, four tasks address stETH as a productive asset, and four tasks address Polkadot OpenGov treasury proposals under public-resource stewardship. Each task fixes an asset or proposal, a stated intent, and the action under consideration. The set is small enough to evaluate carefully and broad enough to expose whether ICVP generalises beyond a single asset class. The fixed task set also makes the comparison controlled: the asset, intent, action, evidence snapshot, model family, prompt budget, and scoring rules are held constant within each task while the valuation configuration is varied.
 
-The evaluation compares three configurations. The full ICVP configuration retrieves evidence under the intent-specific projection $P_i$, instantiates Availability, Durability, and Utility under the intent-specific instantiation $\Phi_i$, applies the operational aggregation $g_i$, and emits a valuation trace with deterministic validation. The single-dimensional baseline collapses each task to its dominant visible signal. For NFTs this is floor price, listing depth, rarity rank, recent sales, or access signal depending on the task. For stETH it is peg, liquidity, yield, or protocol risk depending on the task. For treasury proposals it is requested amount, visible community sentiment, team reputation, or perceived utility depending on the task. The fixed-weight baseline keeps the Availability, Durability, and Utility decomposition but removes intent-conditioned projection and dimension instantiation. It uses one fixed weight vector across all tasks and regimes and pulls evidence from a generic asset profile rather than from an intent-specific projection. This isolates the contribution of the projection $P_i$ and the instantiation $\Phi_i$ from the contribution of the three-dimensional decomposition.
+The evaluation compares three configurations. The full ICVP configuration retrieves evidence under the intent-specific projection $P_i$, instantiates Availability, Durability, and Utility under the intent-specific instantiation $\Phi_i$, applies the operational aggregation $g_i$, and emits a valuation trace with deterministic validation. The single-dimensional baseline collapses each task to its dominant visible signal. For NFTs this is floor price, listing depth, rarity rank, recent sales, or access signal depending on the task. For stETH it is peg, liquidity, yield, or protocol risk depending on the task. For treasury proposals it is requested amount, visible community sentiment, team reputation, or perceived utility depending on the task. The fixed-weight baseline keeps the Availability, Durability, and Utility decomposition but removes intent-conditioned projection and dimension instantiation. It uses one fixed weight vector across all tasks and domains and pulls evidence from a generic asset profile rather than from an intent-specific projection. This isolates the contribution of the projection $P_i$ and the instantiation $\Phi_i$ from the contribution of the three-dimensional decomposition.
 
 \subsection{Validation logic}
 
@@ -43,19 +43,19 @@ The dissertation artifact package will include the task definitions, evaluator i
 
 \subsection{Tasks}
 
-\subsubsection{Pudgy Penguin regime}
+\subsubsection{Pudgy Penguin tasks}
 
 The four NFT tasks share a single asset, the Pudgy Penguin token \texttt{0xBd3531dA5CF5857e7CfAA92426877b022e612cf8} \#1419, and vary the stated intent. Task NFT-1 is long-term holding under value-preservation intent. Task NFT-2 is speculative trading for short-term resale. Task NFT-3 is collateralisation in a DeFi lending context. Task NFT-4 is functional or community access. The same asset under four intents tests whether ICVP changes both the projected evidence and the instantiated valuation dimensions. For example, Availability is expected to draw on floor price, listing depth, and recent sales under speculative trading and on access rights, membership scarcity, and substitutability of community access under functional access.
 
-\subsubsection{stETH regime}
+\subsubsection{stETH tasks}
 
 The stETH tasks broaden the evaluation beyond collectibles into a productive asset with yield, peg, and protocol risk. Task ETH-1 is long-term holding for ETH-denominated value with staking yield. Task ETH-2 is collateralisation in DeFi lending. Task ETH-3 is liquidity exit under current peg, withdrawal queue, and depeg conditions. Task ETH-4 is protocol-risk exposure relative to holding ETH. These tasks test whether ICVP can instantiate Availability as accepted-collateral depth, Durability as validator decentralisation and slashing exposure, and Utility as productive yield and composability with lending and trading venues.
 
-\subsubsection{Polkadot OpenGov regime}
+\subsubsection{Polkadot OpenGov tasks}
 
 The four governance tasks evaluate real Polkadot OpenGov treasury proposals under public-resource stewardship intent. Task GOV-1 is a clear-proceed case with a strong team, clear deliverables, a reasonable budget, and strong ecosystem utility. Task GOV-2 is a clear-decline case with weak deliverables, poor evidence, duplicated work, or excessive budget. Task GOV-3 is a defer case with potentially useful work but missing evidence, unclear milestones, or conflicting signals. Task GOV-4 is a controversial case with substantial expert disagreement. The reference labels translate to governance-appropriate semantics. \textit{Proceed} corresponds to a recommendation to support, \textit{defer} to a recommendation to abstain due to insufficient or conflicting evidence, and \textit{decline} to a recommendation to oppose. The agent does not autonomously vote. It produces a recommendation and a valuation trace that a human voter approves, edits, or rejects.
 
-\subsection{Pudgy Penguin regime results}
+\subsection{Pudgy Penguin domain results}
 
 \subsubsection{Setup and data acquisition}
 
@@ -67,9 +67,10 @@ Table \ref{tab:nft-decision} reports decision agreement and component score devi
 
 \begin{table}[h]
 \centering
-\caption[Preliminary decision quality on the Pudgy Penguin regime]{Preliminary decision quality on the Pudgy Penguin regime. Component MAE is the mean absolute error of $A/D/U$ scores against the expert median across the four tasks. Numbers are subject to revision after the full benchmark rerun.}
+\caption[Preliminary decision quality on the Pudgy Penguin domain]{Preliminary decision quality on the Pudgy Penguin domain. Component MAE is the mean absolute error of $A/D/U$ scores against the expert median across the four tasks. Numbers are subject to revision after the full benchmark rerun.}
 \label{tab:nft-decision}
-\begin{tabular}{|l|c|c|c|c|}
+\small
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\centering\arraybackslash}p{2.7cm}|>{\centering\arraybackslash}p{1.8cm}|>{\centering\arraybackslash}p{2.5cm}|>{\centering\arraybackslash}p{2.1cm}|}
 \hline
 \textbf{Configuration} & \textbf{Decision agreement} & \textbf{Macro-F1} & \textbf{False-proceed rate} & \textbf{Component MAE} \\
 \hline
@@ -77,7 +78,7 @@ ICVP (full) & 4/4 & 1.00 & 0/4 & 0.00 \\
 Single-dimensional baseline & 2/4 & 0.45 & 1/4 & 1.42 \\
 Fixed-weight baseline & 3/4 & 0.67 & 1/4 & 0.83 \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 The single-dimensional baseline matches the reference decision when the dominant visible signal happens to align with the intent, as in long-term holding where floor price and recent sales correlate with the long-term outlook for this collection. It fails on functional access, where floor price gives no signal about community access rights, and produces a false \textit{proceed} on speculative trading where short-term price momentum on its own is misleading without considering the full evidence picture. The fixed-weight baseline does better on score deviation because it retains the three-dimensional decomposition, but it instantiates Availability and Utility identically across intents, so it overweights market liquidity in functional access and underweights community access rights in long-term holding.
@@ -88,9 +89,10 @@ Table \ref{tab:nft-trace} reports evidence relevance and trace quality across th
 
 \begin{table}[h]
 \centering
-\caption[Preliminary evidence relevance and trace quality on the Pudgy Penguin regime]{Preliminary evidence relevance and trace quality on the Pudgy Penguin regime. Numbers are subject to revision after the full benchmark rerun.}
+\caption[Preliminary evidence relevance and trace quality on the Pudgy Penguin domain]{Preliminary evidence relevance and trace quality on the Pudgy Penguin domain. Numbers are subject to revision after the full benchmark rerun.}
 \label{tab:nft-trace}
-\begin{tabular}{|l|c|c|c|c|}
+\small
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\centering\arraybackslash}p{2.4cm}|>{\centering\arraybackslash}p{2.4cm}|>{\centering\arraybackslash}p{2.4cm}|>{\centering\arraybackslash}p{2.4cm}|}
 \hline
 \textbf{Configuration} & \textbf{Evidence relevance} & \textbf{Distractor inclusion} & \textbf{Trace completeness} & \textbf{Validator-accepted} \\
 \hline
@@ -98,20 +100,21 @@ ICVP (full) & 0.92 & 0.08 & 1.00 & 4/4 \\
 Single-dimensional baseline & 0.70 & 0.05 & 0.45 & 0/4 \\
 Fixed-weight baseline & 0.65 & 0.31 & 0.85 & 3/4 \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 The single-dimensional baseline scores high on distractor exclusion because it includes very little evidence at all, but precisely for that reason it fails the deterministic validator. Its trace omits intent-required evidence categories such as access rights or storage durability and is rejected on completeness grounds. The fixed-weight baseline includes a wider evidence set but fails to filter to the intent-relevant subset and pulls in market metrics for functional-access tasks and access-rights metrics for speculative-trading tasks, which inflates distractor inclusion. Only the full ICVP configuration produces traces that the validator accepts in all four tasks.
 
-\subsection{stETH regime results}
+\subsection{stETH domain results}
 
-The reference decisions for the stETH regime were \textit{proceed} for long-term holding, \textit{proceed} for collateralisation under conservative loan-to-value, \textit{defer} for liquidity exit at the time of evaluation due to a non-stressed peg and a normal withdrawal queue, and \textit{proceed} for protocol-risk exposure within the panel's stated tolerance. The intent-specific projection differs sharply across these tasks. Long-term holding pulls validator decentralisation, slashing history, governance stability, and yield source. Collateralisation pulls accepted-collateral lists, liquidation depth, and historical liquidation events. Liquidity exit pulls peg deviation, primary and secondary market depth, and the withdrawal queue length. Protocol-risk exposure pulls smart-contract audit history, governance attack surface, and validator-set composition \cite{ScharnowskiJahanshahloo2024LiquidStaking, Xiong2024LeverageStaking, LidoWithdrawalQueueERC721}.
+The reference decisions for the stETH domain were \textit{proceed} for long-term holding, \textit{proceed} for collateralisation under conservative loan-to-value, \textit{defer} for liquidity exit at the time of evaluation due to a non-stressed peg and a normal withdrawal queue, and \textit{proceed} for protocol-risk exposure within the panel's stated tolerance. The intent-specific projection differs sharply across these tasks. Long-term holding pulls validator decentralisation, slashing history, governance stability, and yield source. Collateralisation pulls accepted-collateral lists, liquidation depth, and historical liquidation events. Liquidity exit pulls peg deviation, primary and secondary market depth, and the withdrawal queue length. Protocol-risk exposure pulls smart-contract audit history, governance attack surface, and validator-set composition \cite{ScharnowskiJahanshahloo2024LiquidStaking, Xiong2024LeverageStaking, LidoWithdrawalQueueERC721}.
 
 \begin{table}[h]
 \centering
-\caption[Preliminary decision quality on the stETH regime]{Preliminary decision quality on the stETH regime. Numbers are subject to revision after the full benchmark rerun.}
+\caption[Preliminary decision quality on the stETH domain]{Preliminary decision quality on the stETH domain. Numbers are subject to revision after the full benchmark rerun.}
 \label{tab:steth-decision}
-\begin{tabular}{|l|c|c|c|c|}
+\small
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\centering\arraybackslash}p{2.7cm}|>{\centering\arraybackslash}p{1.8cm}|>{\centering\arraybackslash}p{2.5cm}|>{\centering\arraybackslash}p{2.1cm}|}
 \hline
 \textbf{Configuration} & \textbf{Decision agreement} & \textbf{Macro-F1} & \textbf{False-proceed rate} & \textbf{Component MAE} \\
 \hline
@@ -119,20 +122,21 @@ ICVP (full) & 4/4 & 1.00 & 0/4 & 0.31 \\
 Single-dimensional baseline & 2/4 & 0.42 & 2/4 & 1.78 \\
 Fixed-weight baseline & 3/4 & 0.71 & 1/4 & 0.94 \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 The single-dimensional baseline fails most clearly on the liquidity-exit task. It observes a strong yield signal and recommends \textit{proceed} on holding, even though the question is about exiting. This is the kind of failure ICVP is meant to prevent. The relevant evidence under liquidity-exit intent is peg and withdrawal-queue depth, not yield. The fixed-weight baseline exits this trap because the three-dimensional decomposition forces it to consider Durability and Utility, but it still understates the false-proceed risk on the protocol-risk task because its generic profile undervalues validator-set composition relative to historical price stability.
 
-\subsection{Polkadot OpenGov regime results}
+\subsection{Polkadot OpenGov domain results}
 
 Under public-resource stewardship intent, Availability is instantiated as scarcity or under-supply of the proposed contribution, Durability as sustainability and maintainability of the deliverables, and Utility as ecosystem benefit, public-good impact, and strategic alignment. Each proposal was evaluated against its full proposal text, team profile, prior delivery record, treasury context, comparable past proposals from the previous twelve months, community sentiment from Polkassembly and Subsquare, and applicable W3F voting guidance \cite{PolkadotOpenGovTreasury, PolkadotSupportOpenGovParticipation, PolkassemblyArchive, SubsquareReferenda, W3FOpenGovVotingGuidelines}.
 
 \begin{table}[h]
 \centering
-\caption[Preliminary decision quality on the Polkadot OpenGov regime]{Preliminary decision quality on the Polkadot OpenGov regime. Numbers are subject to revision after the full benchmark rerun.}
+\caption[Preliminary decision quality on the Polkadot OpenGov domain]{Preliminary decision quality on the Polkadot OpenGov domain. Numbers are subject to revision after the full benchmark rerun.}
 \label{tab:gov-decision}
-\begin{tabular}{|l|c|c|c|c|}
+\small
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\centering\arraybackslash}p{2.7cm}|>{\centering\arraybackslash}p{1.8cm}|>{\centering\arraybackslash}p{2.5cm}|>{\centering\arraybackslash}p{2.1cm}|}
 \hline
 \textbf{Configuration} & \textbf{Decision agreement} & \textbf{Macro-F1} & \textbf{False-proceed rate} & \textbf{Component MAE} \\
 \hline
@@ -140,14 +144,14 @@ ICVP (full) & 4/4 & 1.00 & 0/4 & 0.42 \\
 Single-dimensional baseline & 1/4 & 0.18 & 2/4 & 2.10 \\
 Fixed-weight baseline & 2/4 & 0.40 & 1/4 & 1.18 \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{table}
 
-The single-dimensional baseline performs worst on this regime. Visible community sentiment as a single signal misranks the controversial-case proposal because high engagement does not separate strong support from strong opposition. Requested-amount as a single signal misranks the clear-proceed proposal because a larger budget for a larger and well-scoped delivery is not the same as profligacy. The fixed-weight baseline does somewhat better, but its generic Availability and Utility instantiation does not match the public-resource stewardship intent. It tends to score Availability as proposal-frequency rather than as scarcity of the specific contribution and to score Utility as visible community engagement rather than as ecosystem benefit. The full ICVP configuration matches the reference decision on all four tasks and, in the controversial case, returns \textit{defer} with a trace that documents the conflicting evidence rather than overstating confidence in either direction.
+The single-dimensional baseline performs worst on this domain. Visible community sentiment as a single signal misranks the controversial-case proposal because high engagement does not separate strong support from strong opposition. Requested-amount as a single signal misranks the clear-proceed proposal because a larger budget for a larger and well-scoped delivery is not the same as profligacy. The fixed-weight baseline does somewhat better, but its generic Availability and Utility instantiation does not match the public-resource stewardship intent. It tends to score Availability as proposal-frequency rather than as scarcity of the specific contribution and to score Utility as visible community engagement rather than as ecosystem benefit. The full ICVP configuration matches the reference decision on all four tasks and, in the controversial case, returns \textit{defer} with a trace that documents the conflicting evidence rather than overstating confidence in either direction.
 
 \subsection{Robustness}
 
-We test three robustness conditions on a stratified sample of two tasks per regime. The first condition is missing evidence, where one intent-required evidence category is removed before retrieval. The second is conflicting evidence, where two evidence items disagree on the same factual claim. The third is prompt injection embedded in retrieved content that asks the agent to override its instructions. Across these six tasks the full ICVP configuration responded to missing required evidence by lowering confidence and switching from \textit{proceed} to \textit{defer} in 5 out of 6 cases, which is consistent with the Evidence-Completeness Safety property of Section \ref{sec:proof-targets}. It detected conflict and reported both sources in the trace in 6 out of 6 cases. It refused the injected instructions in 6 out of 6 cases and recorded the attempted injection as a flagged provenance event. The single-dimensional baseline did not meaningfully change behaviour under any of the three conditions, because it only consumes one signal. The fixed-weight baseline detected conflict in 4 out of 6 cases and lowered confidence under missing data in 3 out of 6 cases, but it does not have a category for intent-required evidence and therefore cannot satisfy Evidence-Completeness Safety in the same form.
+We test three robustness conditions on a stratified sample of two tasks per domain. The first condition is missing evidence, where one intent-required evidence category is removed before retrieval. The second is conflicting evidence, where two evidence items disagree on the same factual claim. The third is prompt injection embedded in retrieved content that asks the agent to override its instructions. Across these six tasks the full ICVP configuration responded to missing required evidence by lowering confidence and switching from \textit{proceed} to \textit{defer} in 5 out of 6 cases, which is consistent with the Evidence-Completeness Safety property of Section \ref{sec:proof-targets}. It detected conflict and reported both sources in the trace in 6 out of 6 cases. It refused the injected instructions in 6 out of 6 cases and recorded the attempted injection as a flagged provenance event. The single-dimensional baseline did not meaningfully change behaviour under any of the three conditions, because it only consumes one signal. The fixed-weight baseline detected conflict in 4 out of 6 cases and lowered confidence under missing data in 3 out of 6 cases, but it does not have a category for intent-required evidence and therefore cannot satisfy Evidence-Completeness Safety in the same form.
 
 \subsection{Computational overhead}
 
@@ -155,7 +159,7 @@ The agentic configuration costs more in latency and money than a single-signal l
 
 \subsection{Threats to validity}
 
-The evaluation has limits that should be made explicit. The task count is twelve, which is large enough to span three regimes and four intents but small enough that any single mislabelled reference decision can move regime-level numbers. The reference panel consists of three evaluators, and the use of majority labels and median scores compresses disagreement. We report disagreement separately precisely so that consensus-friendly tasks and contested tasks can be distinguished. Blinding reduces but does not eliminate evaluator bias, because domain experts may recognise assets, protocols, or proposals from the frozen evidence snapshots. Some figures in this chapter are placeholders pending the full re-run of the benchmark with finalised model versions and final evidence snapshots. They are clearly marked. The market and protocol conditions of the stETH regime are time-dependent and the conclusions about liquidity exit hold for the snapshot used in the evaluation rather than for arbitrary future market states. The treasury regime depends on the four selected proposals and on the public discussion available at the time of evaluation. The required-evidence schemas are designed by the researcher rather than learned from a large labelled corpus, so schema quality is part of the framework and a possible source of bias. The intent profiles used in the operational aggregation $g_i$ are set rather than learned, and learning intent profiles from validated traces is left to future work.
+The evaluation has limits that should be made explicit. The task count is twelve, which is large enough to span three domains and four intents but small enough that any single mislabelled reference decision can move domain-level numbers. The reference panel consists of three evaluators, and the use of majority labels and median scores compresses disagreement. We report disagreement separately precisely so that consensus-friendly tasks and contested tasks can be distinguished. Blinding reduces but does not eliminate evaluator bias, because domain experts may recognise assets, protocols, or proposals from the frozen evidence snapshots. Some figures in this chapter are placeholders pending the full re-run of the benchmark with finalised model versions and final evidence snapshots. They are clearly marked. The market and protocol conditions of the stETH domain are time-dependent and the conclusions about liquidity exit hold for the snapshot used in the evaluation rather than for arbitrary future market states. The treasury domain depends on the four selected proposals and on the public discussion available at the time of evaluation. The required-evidence schemas are designed by the researcher rather than learned from a large labelled corpus, so schema quality is part of the framework and a possible source of bias. The intent profiles used in the operational aggregation $g_i$ are set rather than learned, and learning intent profiles from validated traces is left to future work.
 
 \subsection{Discussion and answers to the research questions}
 \label{sec:answering-rqs}

@@ -179,12 +179,12 @@ funding that aggregates small contributions into a public-goods signal
 \cite{Buterin2018QF, Buterin2019, Pasquini2021, Weyl2018}.
 
 These approaches tell ICVP which evidence is informative inside a particular
-regime, but they stay regime-specific. They do not share one decision
+domain, but they stay domain-specific. They do not share one decision
 contract across asset classes, do not formalise how intent reshapes the
 relevant evidence, and do not produce one valuation trace that policy
 enforcement can gate on. ICVP reuses their domain insights inside the
-regime-specific projections $P_i$ and instantiations $\Phi_i$. The
-contribution at this layer is the cross-regime decision model and the trace
+domain-specific projections $P_i$ and instantiations $\Phi_i$. The
+contribution at this layer is the cross-domain decision model and the trace
 it emits, not a new asset-specific scoring formula.
 
 \subsubsection{Multi-Criteria Decision Analysis}
@@ -286,7 +286,7 @@ should force a \textit{defer} rather than a transaction proposal.
 		\hline
 		Treasury governance tooling & Aggregate proposals, surface discussion and sentiment, and run voting workflow. & Present and aggregate proposals, but do not project them through stewardship intent into auditable valuation traces. \\
 		\hline
-		Valuation approaches per asset class & Provide regime-specific scoring, hedonic models, and quadratic-funding signals for NFTs, productive assets, and proposals. & Remain asset-class specific; do not share a cross-regime decision contract or emit policy-gateable valuation traces. \\
+		Valuation approaches per asset class & Provide domain-specific scoring, hedonic models, and quadratic-funding signals for NFTs, productive assets, and proposals. & Remain asset-class specific; do not share a cross-domain decision contract or emit policy-gateable valuation traces. \\
 		\hline
 		Blockchain agent platforms & Combine off-chain agents with on-chain identity, services, incentives, and user-facing execution. & Demonstrate useful agent architectures, but do not jointly provide ICVP projection, valuation traces, and NFTAA-level trace-gated authorisation. \\
 		\hline
@@ -302,7 +302,7 @@ Agent-payment systems can let machines pay and act. Agent identity and
 reputation standards can describe and assess agents. Policy wallets and custody
 systems can enforce transaction constraints. Treasury governance tools aggregate
 proposals and run voting workflow. Asset-class-specific valuation work supplies
-regime-level evidence. Platforms such as Virtuals, Autonolas, and Griffain show
+domain-level evidence. Platforms such as Virtuals, Autonolas, and Griffain show
 that AI agents can be connected to on-chain identity, services, incentives, and
 user interfaces.
 
