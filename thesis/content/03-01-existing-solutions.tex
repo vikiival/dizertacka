@@ -20,7 +20,10 @@ higher-level statement of desired outcome. In ERC-7683-style settlement, or in
 solver-mediated systems such as CoW Protocol, UniswapX, and Across-style
 cross-chain intents, the user expresses an outcome and specialised solvers
 compete or coordinate to satisfy it \cite{ERC7683, Nag2025CoWMechanism,
-UniswapXWhitepaper, AcrossCrosschainIntents}.
+UniswapXWhitepaper, AcrossCrosschainIntents}. Related work on Polkadot's XCMP
+interoperability shows the same execution-side concern in a heterogeneous
+multi-chain setting, where the problem is to make cross-chain actions expressible
+and routable across parachains \cite{Morhac2023xcmp}.
 
 These systems are directly relevant because they show that user intent can be a
 first-class input to blockchain execution. Their intent, however, is normally an
