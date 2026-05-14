@@ -1,7 +1,7 @@
 \section{Blockchain technology}
 \label{sec:blockchain}
 
-"Do you need a blockchain?" was a breaking paper describing that many use cases do not need blockchain technology \cite{Wust2018}.
+"Do you need a blockchain?" was an influential paper describing that many use cases do not need blockchain technology \cite{Wust2018}.
 At a surface level, blockchain shares structural similarities with distributed NoSQL databases such as MongoDB: both store data across multiple nodes and support replication \cite{Chowdhury2018}.
 However, the fundamental difference lies in the trust model. A NoSQL database operates under the assumption that all participating nodes are honest and controlled by a single administrative entity. Blockchain, by contrast, is designed for adversarial environments where participants may act maliciously, and it relies on consensus algorithms to ensure that state transitions are valid without requiring trust in any single party \cite{Du2017}.
 The key properties that distinguish blockchain from traditional distributed databases are \cite{Zheng2017}:
@@ -37,7 +37,7 @@ In the area of blockchain, there are many types of consensus algorithms. The mos
   \item[ ] Proof-of-Work (PoW) - The idea behind Proof-of-Work is that to make a valid block, we need to use extensive computational resources to find a correct value in the cryptographic puzzle.
   \item[ ] Proof-of-Stake (PoS) - Uses the participants' stake to decide the block's validity.
   \item[ ] Nominated Proof-of-Stake (NPoS) - a Proof-of-Stake with the possibility of other participants nominating their stake to the block validator
-  Therefore, the block reward is split between the validator and other nominators by the ratio of their stake. The NPOS is used in the Polkadot and their parachains.
+  Therefore, the block reward is split between the validator and other nominators by the ratio of their stake. NPoS is used in Polkadot and its parachains.
 \end{itemize}
 
 Once data are finalised through consensus, the next question is who can read from and write to the ledger. Blockchain systems are usually grouped into three access models \cite{Zheng2017}:
@@ -54,7 +54,7 @@ Therefore, having this ability to read the data from the blockchain, we can acce
 \begin{figure}[!ht]
   \centering
   \includegraphics[width=\columnwidth]{images/distributed.png}
-  \caption{Graphical representation of centralized and distributed network \cite{baran1964distributed}}
+  \caption[Graphical representation of centralized and distributed network]{Graphical representation of centralized and distributed network \cite{baran1964distributed}}
   \label{fig:decentralized}
 \end{figure}
 
@@ -78,14 +78,14 @@ open-source libraries like OpenZeppelin\footnote{https://github.com/OpenZeppelin
 Nevertheless, the main question is how smart contracts can bring value.
 Since smart contracts can call other smart contracts, we need to bring a set of APIs or standardizations that can be used to access and modify the data.
 One of the most fundamental standards in the blockchain ecosystem is tokens. We can imagine a token as a digital asset representing something with a monetary value (e.g. being used to pay for services).
-Or it can be a unique, non-fungible item that can represent either a physical, real-world object,
-therefore a token is a digital twin or a digital asset that can be later reused for various use cases, such as identity pass or the object in the metaverse.
+Or it can be a unique, non-fungible item that represents a physical, real-world object.
+In that case the token acts as an on-chain representation of the asset and can later be reused for various use cases, such as an identity pass or an object in the metaverse.
 The most common reference standards across various blockchain ecosystems are Ethereum Improvement Proposals or EIPs.
 
 The EIPs are a set of proposals that are designed to bring value or improve the existing standards in the network.
 The four main EIPs for fungible and non-fungible tokens are ERC-20, ERC-721, ERC-777, and ERC-1155.
 
-We need to choose the right token type depending on the use case. To create a fungible, use ERC-20.
+We need to choose the right token type depending on the use case. To create a fungible token, use ERC-20.
 What are the fungible tokens in general? We can say that they are tokens that can be interchangeable \cite{vogelsteller2015erc}.
 As an example, one USD bill has the same monetary value as another USD bill. In the space of cryptocurrencies,
 many projects make their tokens to cover different use cases. In the case of the blockchain-based car-sharing platform \cite{valastin2019} we can create a fungible token that would be distributed as a reward for using the car-sharing service.
@@ -99,7 +99,7 @@ ERC-721 is a standard that allows us to create tokens that are not interchangeab
 Often we can use ERC-721 to create a token that represents a tokenized physical object.
 In the previously mentioned car-sharing platform \cite{valastin2019}, we use non-fungible tokens to represent a car.
 Moreover, thanks to the composable architecture, we can also represent keys for the car in the form of NFT owned by the car itself.
-In 2021 NFT got into the mainstream. Many people created their own collectible ERC-721 smart contracts that could be later sold on the blockchain-based marketplace.
+In 2021, NFTs went mainstream. Many people created their own collectible ERC-721 smart contracts that could be later sold on the blockchain-based marketplace.
 Nevertheless, how to distinguish between the two unique tokens? Many tokens hold additional metadata in the form of JSON \cite{entrikennon, Morgan2018} using predefined schema.
 
 Where is the metadata stored? This question is architecturally significant because the choice of storage directly affects key value dimensions of digital assets: availability (whether the metadata remains accessible), durability (whether it persists over time), and mutability (whether it can be updated). Since on-chain storage is prohibitively expensive for large data, the ecosystem has developed several decentralized storage solutions \cite{Benet2014, Wilkinson2014, Williams2019}.
@@ -132,6 +132,11 @@ However, what if we want to represent more complex assets, such as tokenized hou
 Proposed ERC-6551 addresses this gap by creating a so-called smart contract wallet for each ERC-721 item in the collection. Thanks to this token-bound account principle, a token can own other fungible and non-fungible tokens, thereby making a composable entity out of a non-fungible token \cite{EIP6551}. Nevertheless, ERC-6551 is not the first attempt to create composable non-fungible tokens. Valastin et al. created a blockchain-based car-sharing platform using ERC-998 to represent the relationship between a car and its key. The problem with this approach is that this logic has to be implemented inside a smart contract \cite{valastin2019, EIP998}. On the other hand, any ERC-721 token could be upgraded to a token-bound account via ERC-6551 without any modifications.
 
 Along with composability, ERC-6551 provides a useful substrate for creating AI agents, even though there is no unified standard for describing particular AI agents and their capabilities. The draft ERC-8004 (Trustless Agents) proposes a registry for agent discovery and reputation. Agents publish capability descriptions and service endpoints, and other participants can attach on-chain ratings to an agent's identifier \cite{EIP8004}.
+
+Token interoperability is not limited to Ethereum-style standards. In Polkadot,
+fungible assets can be shared across parachains through XCM-based mechanisms,
+which makes token availability and transferability properties of a multi-chain
+environment rather than of a single contract interface \cite{Morhac2022fungible}.
 
 % As we look at Table \ref{table:tokencomparison}
 
