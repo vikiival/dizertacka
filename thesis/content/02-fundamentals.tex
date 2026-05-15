@@ -13,14 +13,14 @@ The key properties that distinguish blockchain from traditional distributed data
     \item \textbf{Decentralization} -- the ledger is replicated across geographically distributed nodes, eliminating single points of failure and censorship.
 \end{enumerate}
 
-When we want to add or modify the data from the blockchain, we need to create new updates to the chain called a transaction.
-These updates are done in batches, so-called blocks, and each block consists of many transactions that can modify the state of the blockchain.
-Each blockchain stores different data in the block for correct functioning. This data depends on the selected consensus algorithm or the implementation of the blockchain.
-In general, the data structure of the blockchain is the following:
+To add or modify blockchain state, users submit updates called transactions.
+These updates are grouped into batches called blocks, and each block contains transactions that can modify the state of the blockchain.
+Each blockchain stores different block fields for correct operation. These fields depend on the selected consensus algorithm and on the implementation of the blockchain.
+In general, a block contains the following data:
 
 \begin{itemize}
   \item height - the number of the block,
-  \item timestamp - the time when the miner created the block,
+  \item timestamp - the time when the validator or miner created the block,
   \item hash - the hash of the Merkle tree of all transactions in the block,
   \item parent hash - the hash of the previous block,
   \item transactions - the list of transactions in the block,
@@ -31,13 +31,13 @@ In general, the data structure of the blockchain is the following:
 However, updating shared state requires a consensus algorithm that determines which proposed blocks are valid and how participants agree on the canonical chain.
 This algorithm is known as the consensus algorithm. Formally, a consensus protocol must satisfy two fundamental properties: \textit{safety}, ensuring that all honest nodes agree on the same state and no conflicting transactions are finalized, and \textit{liveness}, guaranteeing that valid transactions are eventually included in the ledger. In the presence of malicious actors, these guarantees are studied under the framework of Byzantine fault tolerance (BFT), where the system can tolerate up to a threshold of faulty or adversarial nodes \cite{Du2017}.
 
-In the area of blockchain, there are many types of consensus algorithms. The most common are \cite{Bach2018}:
+In blockchain systems, there are many types of consensus algorithms. The most common are \cite{Bach2018}:
 
 \begin{itemize}
-  \item[ ] Proof-of-Work (PoW) - The idea behind Proof-of-Work is that to make a valid block, we need to use extensive computational resources to find a correct value in the cryptographic puzzle.
-  \item[ ] Proof-of-Stake (PoS) - Uses the participants' stake to decide the block's validity.
-  \item[ ] Nominated Proof-of-Stake (NPoS) - a Proof-of-Stake with the possibility of other participants nominating their stake to the block validator
-  Therefore, the block reward is split between the validator and other nominators by the ratio of their stake. NPoS is used in Polkadot and its parachains.
+  \item[ ] Proof-of-Work (PoW) - to make a valid block, participants use extensive computational resources to find a correct value in a cryptographic puzzle.
+  \item[ ] Proof-of-Stake (PoS) - uses the participants' stake to decide the block's validity.
+  \item[ ] Nominated Proof-of-Stake (NPoS) - a Proof-of-Stake variant in which other participants can nominate their stake to a block validator.
+  The block reward is then split between the validator and nominators according to their stake. NPoS is used in Polkadot and its parachains.
 \end{itemize}
 
 Once data are finalised through consensus, the next question is who can read from and write to the ledger. Blockchain systems are usually grouped into three access models \cite{Zheng2017}:
@@ -48,8 +48,8 @@ Once data are finalised through consensus, the next question is who can read fro
   \item semi-permissioned.
 \end{itemize}
 
-Decentralized means that the blockchain is distributed across the network. As we can see in Figure \ref{fig:decentralized}, blockchain nodes hold the same information state instead of having one single source of truth.
-Therefore, having this ability to read the data from the blockchain, we can access the state from any node in the network.
+A decentralized blockchain is distributed across the network. As Figure \ref{fig:decentralized} shows, blockchain nodes hold the same information state instead of relying on one single source of truth.
+Because blockchain data can be read from the network, the state can be accessed from any participating node.
 
 \begin{figure}[H]
   \centering
@@ -65,42 +65,42 @@ A smart contract is a deterministic program deployed on a blockchain that automa
 Smart contracts are typically written in a Turing-complete language\footnote{In the context of EVM, Bitcoin Script is Turing-incomplete}, compiled to bytecode, and addressed via a unique on-chain identifier once deployed.
 By default, the smart contract code is immutable. However, a proxy contract can be used to change the code of the contract \cite{wood2014ethereum}.
 
-The term \emph{smart contract} predates blockchain, and Bitcoin Script already supported limited contract logic. Ethereum was the first blockchain to support Turing-complete smart contracts at the protocol level. In high overview, the Ethereum blockchain has an Ethereum Virtual Machine (EVM) that is used to run smart contracts.
-Thanks to the Turing completeness of the EVM, when we want to write a smart contract, we can use one of the high-level programming languages like Solidity or Vyper \cite{antonopoulos2018mastering}.
+The term \emph{smart contract} predates blockchain, and Bitcoin Script already supported limited contract logic. Ethereum was the first blockchain to support Turing-complete smart contracts at the protocol level. At a high level, the Ethereum blockchain has an Ethereum Virtual Machine (EVM) that runs smart contracts.
+Because the EVM is Turing-complete, smart contracts can be written in high-level programming languages such as Solidity or Vyper \cite{antonopoulos2018mastering}.
 However, the EVM does not directly execute code from the smart contract language. Instead, the code is compiled into the EVM bytecode.
-To make the computation sustainable, when we want to make a transaction, we need to pay a fee defined by the gas \cite{Leonardos2021, Roughgarden2020}. Gas serves as the fee for miners to include the transaction in a block. Additionally, a tip can be included for faster transaction processing.
+To make computation sustainable, each transaction requires a fee defined by gas \cite{Leonardos2021, Roughgarden2020}. Gas is the fee paid for including and executing the transaction in a block. A tip can also be included for faster transaction processing.
 Because every executed byte has a cost, smart-contract development has to account for gas efficiency as well as safety.
 To write reliable smart contracts, communities created
-open-source libraries like OpenZeppelin\footnote{https://github.com/OpenZeppelin/openzeppelin-contracts} or Solmate\footnote{https://github.com/transmissions11/solmate} that can help us to complete our goal.
+open-source libraries such as OpenZeppelin\footnote{https://github.com/OpenZeppelin/openzeppelin-contracts} and Solmate\footnote{https://github.com/transmissions11/solmate} that support safer implementation.
 
 % Something about open-zeppelin and smart contract security?
 
-Nevertheless, the main question is how smart contracts can bring value.
-Since smart contracts can call other smart contracts, we need to bring a set of APIs or standardizations that can be used to access and modify the data.
+The main question is how smart contracts can create value.
+Since smart contracts can call other smart contracts, they need APIs or standards for accessing and modifying data.
 One of the most fundamental standards in the blockchain ecosystem is tokens. We can imagine a token as a digital asset representing something with a monetary value (e.g. being used to pay for services).
 Or it can be a unique, non-fungible item that represents a physical, real-world object.
 In that case the token acts as an on-chain representation of the asset and can later be reused for various use cases, such as an identity pass or an object in the metaverse.
 The most common reference standards across various blockchain ecosystems are Ethereum Improvement Proposals or EIPs.
 
-The EIPs are a set of proposals that are designed to bring value or improve the existing standards in the network.
+EIPs are proposals designed to improve existing standards or introduce new ones in the network.
 The four main EIPs for fungible and non-fungible tokens are ERC-20, ERC-721, ERC-777, and ERC-1155.
 
 We need to choose the right token type depending on the use case. To create a fungible token, use ERC-20.
-What are the fungible tokens in general? We can say that they are tokens that can be interchangeable \cite{vogelsteller2015erc}.
-As an example, one USD bill has the same monetary value as another USD bill. In the space of cryptocurrencies,
-many projects make their tokens to cover different use cases. In the case of the blockchain-based car-sharing platform \cite{valastin2019} we can create a fungible token that would be distributed as a reward for using the car-sharing service.
+Fungible tokens are tokens that are interchangeable \cite{vogelsteller2015erc}.
+As an example, one USD bill has the same monetary value as another USD bill. In the cryptocurrency space,
+many projects create tokens for different use cases. In the case of the blockchain-based car-sharing platform \cite{valastin2019}, a fungible token can be distributed as a reward for using the car-sharing service.
 This token can be used to get a discount for the next ride. In summary, ERC-20 tokens are a simple tool to create and share fungible value.
-However, its simple architecture brings some caveats that we need to consider. That is the reason ERC-777 was created.
-The best feature of the ERC-777 standard is the so-called receive hooks \cite{Dafflon2017}.
-Using ERC-777 instead of ERC-20 prevents us or other smart contracts from accidentally sending other tokens to the contract and bricking them \cite{EIP777}.
+However, the simple ERC-20 architecture has limitations that need to be considered. ERC-777 was created to address some of them.
+The most important feature of the ERC-777 standard is receive hooks \cite{Dafflon2017}.
+Using ERC-777 instead of ERC-20 prevents users or other smart contracts from accidentally sending tokens to a contract that cannot handle them \cite{EIP777}.
 
 ERC-721 provides the corresponding standard for non-fungible tokens.
-ERC-721 is a standard that allows us to create tokens that are not interchangeable \cite{entrikennon}.
-Often we can use ERC-721 to create a token that represents a tokenized physical object.
+ERC-721 is a standard for creating tokens that are not interchangeable \cite{entrikennon}.
+ERC-721 can be used to create a token that represents a tokenized physical object.
 In the previously mentioned car-sharing platform \cite{valastin2019}, we use non-fungible tokens to represent a car.
-Moreover, thanks to the composable architecture, we can also represent keys for the car in the form of NFT owned by the car itself.
+Moreover, thanks to the composable architecture, keys for the car can be represented as NFTs owned by the car itself.
 In 2021, NFTs went mainstream. Many people created their own collectible ERC-721 smart contracts that could be later sold on the blockchain-based marketplace.
-Nevertheless, how to distinguish between the two unique tokens? Many tokens hold additional metadata in the form of JSON \cite{entrikennon, Morgan2018} using predefined schema.
+How, then, can two unique tokens be distinguished? Many tokens hold additional metadata in JSON format using a predefined schema \cite{entrikennon, Morgan2018}.
 
 Where is the metadata stored? This question is architecturally significant because the choice of storage directly affects key value dimensions of digital assets: availability (whether the metadata remains accessible), durability (whether it persists over time), and mutability (whether it can be updated). Since on-chain storage is prohibitively expensive for large data, the ecosystem has developed several decentralized storage solutions \cite{Benet2014, Wilkinson2014, Williams2019}.
 Table \ref{table:storages} compares these alternatives along dimensions relevant to our value framework \cite{Daniel2022}.
@@ -127,9 +127,9 @@ Table \ref{table:storages} compares these alternatives along dimensions relevant
   \end{table}
 
 
-However, what if we want to represent more complex assets, such as tokenized houses or a gaming character, using an inventory of items accumulated over time? It is undoubtedly possible with current ERC-721 and  ERC-1155 standards, but it will introduce complexity to the implementation and decrease composability.
+However, representing more complex assets, such as tokenized houses or a gaming character with an inventory of items accumulated over time, is harder. It is possible with current ERC-721 and ERC-1155 standards, but it increases implementation complexity and reduces composability.
 
-Proposed ERC-6551 addresses this gap by creating a so-called smart contract wallet for each ERC-721 item in the collection. Thanks to this token-bound account principle, a token can own other fungible and non-fungible tokens, thereby making a composable entity out of a non-fungible token \cite{EIP6551}. Nevertheless, ERC-6551 is not the first attempt to create composable non-fungible tokens. Valastin et al. created a blockchain-based car-sharing platform using ERC-998 to represent the relationship between a car and its key. The problem with this approach is that this logic has to be implemented inside a smart contract \cite{valastin2019, EIP998}. On the other hand, any ERC-721 token could be upgraded to a token-bound account via ERC-6551 without any modifications.
+ERC-6551 addresses this gap by creating a smart-contract wallet for each ERC-721 item in a collection. Through this token-bound account principle, a token can own other fungible and non-fungible tokens, thereby turning a non-fungible token into a composable entity \cite{EIP6551}. Nevertheless, ERC-6551 is not the first attempt to create composable non-fungible tokens. Valastin et al. created a blockchain-based car-sharing platform using ERC-998 to represent the relationship between a car and its key. The limitation of that approach is that this logic has to be implemented inside a smart contract \cite{valastin2019, EIP998}. By contrast, any ERC-721 token can be upgraded to a token-bound account via ERC-6551 without modifications.
 
 Along with composability, ERC-6551 provides a useful substrate for creating AI agents, even though there is no unified standard for describing particular AI agents and their capabilities. The draft ERC-8004 (Trustless Agents) proposes a registry for agent discovery and reputation. Agents publish capability descriptions and service endpoints, and other participants can attach on-chain ratings to an agent's identifier \cite{EIP8004}.
 
@@ -155,7 +155,7 @@ environment rather than of a single contract interface \cite{Morhac2022fungible}
 %   \label{table:tokencomparison}
 %   \end{table}
 
-Beyond Ethereum, other blockchain ecosystems have developed their own smart contract environments. For instance, Polkadot supports smart contract execution and additionally allows developers to extend the blockchain runtime itself with custom logic, enabling domain-specific optimizations at the protocol level rather than only at the application layer \cite{Wood2017}.
+Beyond Ethereum, other blockchain ecosystems have developed their own smart contract environments. For instance, Polkadot supports smart contract execution and allows developers to extend the blockchain runtime itself with custom logic, enabling domain-specific optimizations at the protocol level rather than only at the application layer \cite{Wood2017}.
 
 \subsection{Final thoughts on decentralized ledger technology}
 

@@ -3,26 +3,26 @@
 \label{sec:analysis}
 
 When the Internet was created, it had a simple goal: connect computers so they could share data reliably, even if parts of the network failed.
-As the technology matured, the goal pivoted to enable people to communicate via computer and transfer data via the World Wide Web.
+As the technology matured, the goal shifted towards enabling people to communicate by computer and transfer data through the World Wide Web.
 Anyone could spin up a simple Apache server at home and distribute HTML files over the web using the Hypertext Transfer Protocol (HTTP).
-However, most pages were just static, stateless content. For most internet users, it was an unreal experience because they could enjoy features such as email and access to the latest news without waiting until the next day for a printed paper.
+However, most pages were still static, stateless content. For many internet users, the experience was novel because they could use email and access the latest news without waiting until the next day for a printed paper.
 In 1996, when CSS1.0 was introduced in browsers, we could customize the web page's design to our preferences \cite{Choudhury2014}.
 
-Furthermore, a few early e-commerce applications were created, such as Amazon.com.
-This was an era called Web 1.0 or the Internet of Information. The web was a single-page application accessible from any browser.
+Several early e-commerce applications were also created, including Amazon.com.
+This era is commonly called Web 1.0 or the Internet of Information. The web consisted mainly of pages accessible from any browser.
 Powered by speculation in new startups, Web 1.0 ended in the dot-com era \cite{Goodnight2010}.
-A massive number of people joined in the era of Web 2.0. Although it did not bring any profound technological change, it was a new web era.
+Large numbers of users joined during the Web 2.0 era. Although Web 2.0 did not depend on one single technological breakthrough, it changed how people used the web.
 
-Web pages become more interactive thanks to the JavaScript language and frameworks such as jQuery. Web 2 mainly uses HTML5 and CSS3, and the primary fundamental is that the web has become a social and interconnected place.
+Web pages became more interactive thanks to JavaScript and frameworks such as jQuery. Web 2.0 mainly uses HTML5 and CSS3, and its defining feature is that the web became social and interconnected.
 The distinctive shift in Web 2.0 was that non-technical users could create and share content online, from a blog post on WordPress to a YouTube video \cite{Web1, Krumm2008, Chakravorty2017}.
-With the first release of the Facebook platform in 2004, the web became a place where spreading information is easier and faster.
+With the first release of Facebook in 2004, the web became a place where information spread more easily and quickly.
 These platforms allowed non-technical people to create blogs and websites.
 
-Additionally, the Internet allowed the creation of the shared economy. Instead of owning a car, we can rent a car and pay just for the time we use it \cite{Parker2016}.
-As it is known, most vehicles are used only 5\% of the day \cite{Keith2022}. That means that the car is underutilized a lot. A similar situation is happening with housing properties.
-Before the Internet, we rented a house or flat to friends or family members. The Internet allowed us to share our assets with strangers and lowered the transaction cost.
+The Internet also enabled the sharing economy. Instead of owning a car, users can rent one and pay only for the time they use it \cite{Parker2016}.
+Most vehicles are used only 5\% of the day \cite{Keith2022}, which means that they are heavily underutilized. A similar pattern appears in housing.
+Before the Internet, people mostly rented houses or flats to friends or family members. The Internet lowered transaction costs and made it easier to share assets with strangers.
 Platforms like Airbnb were created to make the renting process more accessible. We do not need to limit the platform economy\footnote{Commonly known as the gig economy.} only to asset sharing \cite{Cupi2022, Sundararajan2016}.
-TaskRabbit allowed people to use their time to do tasks and earn money \cite{Prassl2015}.
+TaskRabbit allowed people to sell their time for specific tasks \cite{Prassl2015}.
 The problem is that people participating in the platform economy must earn a reputation for each service separately.
 For example, we can have an impressive reputation score in TaskRabbit, but if we want to become Airbnb hosts, we must build our reputation again \cite{Schor2016}.
 Web 2.0 moved information and access online but kept settlement, ownership, and reputation locked inside individual operators. The Internet of Value is the paradigm that sets out to remove that limit, and the rest of this chapter examines where it has succeeded, where it has not, and what is missing.
@@ -40,7 +40,7 @@ The Internet of Value enables the direct transfer of assets of any kind as well 
 \end{quote}
 
 From the definition, we can derive three essential elements that differentiate the Internet of Value from previous paradigms.
-First, we treat blockchain as the foundation of the IoV rather than just a technology. To enable secure value transfer, we must ensure orchestration among multiple participants in the network, which leads us to the second element: establishing the Internet of Value as a fair and autonomous socio-economic framework rather than merely a technical infrastructure.
+First, blockchain is treated as the foundation of the IoV rather than as just one supporting technology. Secure value transfer requires orchestration among multiple participants in the network, which leads to the second element: the Internet of Value as a fair and autonomous socio-economic framework rather than merely a technical infrastructure.
 
 Third, the definition implies that value itself is not a singular, objective quantity but a multi-dimensional construct. Through expert interviews and systematic analysis, Lohmer et al. \cite{Lohmer2024} later summarized this understanding to propose that value in the Internet of Value can be defined using three distinct dimensions: Economic worth, Utility or access rights, and Ethical and sustainability contributions.
 
@@ -59,4 +59,4 @@ The second gap concerns the boundary at which a semi-autonomous agent is allowed
 
 The third gap concerns governance at scale. Open-source projects and public goods cannot be funded by manual case-by-case assessment once volume rises \cite{Kukelka2022public, Calhoun2006, Ostrom1990}. Open-source code itself creates value, both by allowing multiple parties to contribute to the same codebase, which makes the project more stable and less prone to bugs \cite{Sopko2022}, and by letting non-technical contributors propose ideas and improvements \cite{Alves2022, Yin2021}. Two on-chain mechanisms have emerged to fund this work. Quadratic funding gives backers skin in the game and lets matchers amplify support for shared goals \cite{Buterin2018QF, Buterin2019, Pasquini2021, Buterin2018, Freitas2021, Weyl2018}. On-chain treasury proposals route funding through community votes, with the project receiving funds if the proposal passes \cite{Rodrigues2022, Valastin2024proto}. Both mechanisms require processing on-chain and off-chain evidence about spending history, deliverables, and ecosystem fit, and at realistic volumes this evaluation cost is the binding constraint. Polkadot's OpenGov system processes hundreds of proposals per year, each one requiring analysis of on-chain spending history, team track records, deliverable feasibility, and alignment with ecosystem priorities \cite{Valastin2024proto}. Individual voters lack the time and tooling to do this consistently, which leads to voter apathy, low participation rates, and decisions driven by social influence rather than evidence. The framing this thesis takes is that agentic systems act as a decision-support layer that retrieves evidence, structures it across multiple dimensions, and produces auditable recommendations for human voters \cite{Wang2024survey}. Final voting authority stays with human participants or formally authorised governance actors. Blockchain stays the settlement layer that records approved actions in a transparent and immutable form. The two layers are complementary, not substitutes. The agent does not replace human judgement, and the chain does not interpret value. The scalability limit on manual governance evaluation is the third analytical gap this thesis addresses.
 
-Despite the literature on blockchain-based asset valorization \cite{DeLope2021}, no standardized framework yet exists for multi-dimensional, goal-oriented asset valuation, account models do not yet expose the policy boundaries a semi-autonomous agent needs, and governance still assumes voters can keep up with proposal volume. These three gaps, the absence of a multi-dimensional valuation framework, the lack of agent-compatible policy boundaries at the account level, and the scalability limit on manual governance evaluation, motivate the research questions formulated in Chapter~\ref{sec:aims}.
+Despite the literature on blockchain-based asset valuation \cite{DeLope2021}, no standardized framework yet exists for multi-dimensional, goal-oriented asset valuation, account models do not yet expose the policy boundaries a semi-autonomous agent needs, and governance still assumes voters can keep up with proposal volume. These three gaps, the absence of a multi-dimensional valuation framework, the lack of agent-compatible policy boundaries at the account level, and the scalability limit on manual governance evaluation, motivate the research questions formulated in Chapter~\ref{sec:aims}.
