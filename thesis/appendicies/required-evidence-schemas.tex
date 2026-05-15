@@ -1,0 +1,193 @@
+\appsection{RequiredEvidence Schemas}
+\label{app:required-evidence-schemas}
+
+This appendix lists the \textit{RequiredEvidence} schemas referenced in Section \ref{sec:required-evidence-schemas} in full. Each schema is an authored, versioned artefact. The version field is mandatory, the schema hash is computed over the canonical serialisation of the schema bytes, and the evaluation harness records both fields per task. The on-chain NFTAA contract recognises a fixed set of schema versions, so a schema that is not registered cannot be used to authorise a transaction even if a valid validator signature accompanies it.
+
+The three schemas below cover the three evaluation domains of the thesis: an NFT or access asset, a productive DeFi asset, and a treasury-governance proposal. We also include a deliberately weakened variant per domain that is used as the sensitivity condition described in Section \ref{sec:required-evidence-schemas}.
+
+\subsection{NFT or access asset}
+\label{app:schema-nft}
+
+\begin{verbatim}
+{
+  "schema_id":      "icvp.required_evidence.nft_access",
+  "schema_version": "1.0.0",
+  "asset_class":    "erc721_nft",
+  "intent":         "community_access | long_term_holding | collateralisation",
+  "sources": [
+    "Lohmer et al. 2024 (cite: Lohmer2024)",
+    "Ante 2021 (cite: Ante2021)",
+    "Dowling 2022 (cite: Dowling2022)",
+    "Nadini et al. 2021 (cite: Nadini2021)",
+    "Kong and Lin 2021 (cite: Kong2021)"
+  ],
+  "required_categories": {
+    "collection_identity": {
+      "ttl":        "30d",
+      "provenance": "contract_address + chain_id + verified_source",
+      "hard":       ["contract_verified == true"]
+    },
+    "metadata_integrity": {
+      "ttl":        "30d",
+      "provenance": "token_uri + storage_backend + content_hash",
+      "hard":       ["content_hash_matches_on_chain == true",
+                     "storage_backend in {ipfs, arweave, on_chain}"]
+    },
+    "rarity_and_traits": {
+      "ttl":        "30d",
+      "provenance": "indexer_name + indexer_version + snapshot_block",
+      "hard":       ["trait_distribution_present == true"]
+    },
+    "market_depth_and_liquidity": {
+      "ttl":        "5m",
+      "provenance": "marketplace + api_endpoint + retrieval_timestamp",
+      "hard":       ["listings_count >= 0",
+                     "thirty_day_volume_usd >= 0"]
+    },
+    "ownership_history": {
+      "ttl":        "30d",
+      "provenance": "indexer_name + start_block + end_block",
+      "hard":       ["unique_holders >= 1"]
+    }
+  },
+  "optional_categories": {
+    "community_signals":    { "ttl": "7d",  "provenance": "platform + url" },
+    "creator_track_record": { "ttl": "30d", "provenance": "source + url" }
+  },
+  "hard_constraints": [
+    "intent in {community_access, long_term_holding, collateralisation}",
+    "asset_class == erc721_nft"
+  ]
+}
+\end{verbatim}
+
+A weakened variant \texttt{icvp.required\_evidence.nft\_access@0.9.0-weak} demotes \texttt{rarity\_and\_traits} and \texttt{ownership\_history} to optional, removes the \texttt{content\_hash\_matches\_on\_chain} hard constraint, and loosens \texttt{market\_depth\_and\_liquidity} TTL from five minutes to one hour. This variant is used as the sensitivity condition.
+
+\subsection{Productive DeFi asset (stETH)}
+\label{app:schema-steth}
+
+\begin{verbatim}
+{
+  "schema_id":      "icvp.required_evidence.productive_steth",
+  "schema_version": "1.0.0",
+  "asset_class":    "lst_steth",
+  "intent":         "productive_yield | liquidity_exit | collateralisation",
+  "sources": [
+    "Lido protocol risk disclosure (cite: LidoRisk)",
+    "Frangella and Herskind on Aave 2022 (cite: frangella2022aave)",
+    "Gambacorta et al. on DeFi 2024 (cite: gambacorta2024defi)"
+  ],
+  "required_categories": {
+    "peg_and_market_price": {
+      "ttl":        "5m",
+      "provenance": "oracle_set + feed_addresses + retrieval_timestamp",
+      "hard":       ["abs(market_price / eth_price - 1) <= 0.05",
+                     "oracle_set_size >= 2"]
+    },
+    "withdrawal_queue_state": {
+      "ttl":        "15m",
+      "provenance": "protocol_contract + block_number",
+      "hard":       ["queue_length_blocks >= 0",
+                     "withdrawals_enabled in {true, false}"]
+    },
+    "validator_set_health": {
+      "ttl":        "1d",
+      "provenance": "lido_oracle + report_epoch",
+      "hard":       ["active_validators >= 1",
+                     "slashed_share <= 0.01"]
+    },
+    "liquidity_depth": {
+      "ttl":        "5m",
+      "provenance": "dex_venue + pool_address + retrieval_timestamp",
+      "hard":       ["slippage_for_target_size_pct >= 0"]
+    },
+    "protocol_risk_signals": {
+      "ttl":        "30d",
+      "provenance": "audit_report_url + auditor + report_date",
+      "hard":       ["latest_audit_within_months <= 12"]
+    },
+    "governance_change_log": {
+      "ttl":        "1d",
+      "provenance": "governance_indexer + last_block",
+      "hard":       ["last_param_change_block <= current_block"]
+    }
+  },
+  "optional_categories": {
+    "yield_history":    { "ttl": "1d",  "provenance": "protocol_oracle" },
+    "fee_schedule":     { "ttl": "30d", "provenance": "protocol_docs_url" },
+    "insurance_cover":  { "ttl": "7d",  "provenance": "cover_protocol + policy_id" }
+  },
+  "hard_constraints": [
+    "intent in {productive_yield, liquidity_exit, collateralisation}",
+    "asset_class == lst_steth"
+  ]
+}
+\end{verbatim}
+
+A weakened variant \texttt{icvp.required\_evidence.productive\_steth@0.9.0-weak} demotes \texttt{validator\_set\_health} and \texttt{protocol\_risk\_signals} to optional, removes the cross-oracle agreement constraint on \texttt{peg\_and\_market\_price}, and loosens the \texttt{liquidity\_depth} TTL from five minutes to one hour.
+
+\subsection{Treasury or governance proposal}
+\label{app:schema-treasury}
+
+\begin{verbatim}
+{
+  "schema_id":      "icvp.required_evidence.treasury_governance",
+  "schema_version": "1.0.0",
+  "asset_class":    "treasury_proposal",
+  "intent":         "public_resource_stewardship",
+  "sources": [
+    "Web3 Foundation OpenGov treasury voting guidelines (cite: W3FOpenGovVotingGuidelines)",
+    "Rodrigues 2022 on DAO governance (cite: Rodrigues2022)",
+    "Valastin et al. 2024 protocol (cite: Valastin2024proto)"
+  ],
+  "required_categories": {
+    "proposal_text": {
+      "ttl":        "180d",
+      "provenance": "referenda_pallet + referendum_id + submission_block",
+      "hard":       ["text_length_chars >= 200"]
+    },
+    "requested_allocation": {
+      "ttl":        "180d",
+      "provenance": "referenda_pallet + referendum_id",
+      "hard":       ["amount_dot > 0",
+                     "amount_dot_to_treasury_pct < 0.10"]
+    },
+    "milestone_schedule": {
+      "ttl":        "180d",
+      "provenance": "proposal_text_section + milestone_index",
+      "hard":       ["milestones_count >= 1",
+                     "sum_of_milestone_amounts == amount_dot"]
+    },
+    "contributor_history": {
+      "ttl":        "90d",
+      "provenance": "github_url + or + past_referendum_ids",
+      "hard":       ["prior_delivered_proposals >= 0"]
+    },
+    "comparable_past_proposals": {
+      "ttl":        "180d",
+      "provenance": "referenda_pallet + referendum_ids",
+      "hard":       ["comparables_count >= 0"]
+    },
+    "applicable_voting_guidance": {
+      "ttl":        "365d",
+      "provenance": "w3f_guideline_version + url",
+      "hard":       ["guideline_version_recognised == true"]
+    }
+  },
+  "optional_categories": {
+    "external_reviews":   { "ttl": "90d", "provenance": "review_url + reviewer" },
+    "ecosystem_alignment": { "ttl": "180d", "provenance": "source + url" },
+    "community_sentiment": { "ttl": "30d", "provenance": "forum_url + snapshot_date" }
+  },
+  "hard_constraints": [
+    "intent == public_resource_stewardship",
+    "asset_class == treasury_proposal"
+  ]
+}
+\end{verbatim}
+
+A weakened variant \texttt{icvp.required\_evidence.treasury\_governance@0.9.0-weak} demotes \texttt{milestone\_schedule} and \texttt{contributor\_history} to optional, removes the budget-share constraint on \texttt{requested\_allocation}, and loosens the \texttt{community\_sentiment} TTL from thirty days to one hundred eighty days.
+
+\subsection{Versioning and reproducibility}
+
+Each schema is checked into the prototype repository under \texttt{schemas/} and tagged with its \texttt{schema\_version}. The schema hash is computed over the canonical JSON serialisation. The evaluation harness loads schemas by version from a configuration field and records the loaded version and its hash in every task result, so that any reported number is reproducible against the same schema bytes. The on-chain NFTAA contract carries a registry of recognised schema versions and their hashes, so that a schema that is not registered cannot anchor an authorisation even if a valid validator signature accompanies it. This makes schema authorship a defended part of the contribution rather than an implementation detail.
