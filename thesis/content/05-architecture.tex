@@ -218,7 +218,7 @@ The third alternative we considered is the operationally simplest. We could let 
 
 The methodology puts ICVP into practice. It transforms a stated intent and an asset into an auditable valuation trace and, when applicable, into a policy-constrained transaction prepared for human approval and account-level enforcement. Each phase maps to a distinct architectural layer, so the pipeline from intent to settlement is explicit rather than implicit. The methodology follows the formal model in Section \ref{sec:icvp}, which guarantees that the projection $P_i$ and the instantiation $\Phi_i$ are visible steps in the pipeline rather than hidden assumptions inside a single prompt.
 
-We propose the following setup for asset valorisation in agentic systems within the Internet of Value:
+We propose the following setup for asset valuation in agentic systems within the Internet of Value:
 
 \begin{enumerate}
     \item \textbf{Evidence acquisition.} Given the asset $a$ and the stated intent $i$, the agent retrieves evidence $E$ from external data sources and records provenance for each item. The retrieval is intent-aware, so the evidence pulled for community access differs from the evidence pulled for speculative trading even when the asset is the same.
@@ -228,7 +228,7 @@ We propose the following setup for asset valorisation in agentic systems within 
 \end{enumerate}
 
 
-In the following subsection, we will describe the technical and operational requirements for a functional architecture for agentic systems in the context of the Internet of Value and NFTs. Requirements are organized systematically, into four categories: data acquisition, agent capabilities, execution guarantees, and security properties.
+The following subsection describes the technical and operational requirements for a functional architecture for agentic systems in the context of the Internet of Value and NFTs. The requirements are organized into four categories: data acquisition, agent capabilities, execution guarantees, and security properties.
 
 \subsection{System Requirements}
 
@@ -236,9 +236,9 @@ In the following subsection, we will describe the technical and operational requ
 To instantiate the projected dimensions $A_i$, $D_i$, and $U_i$ for an asset $a$ under a stated intent $i$, the system must acquire heterogeneous data from multiple sources. The data acquisition layer does not decide what is relevant. The intent-specific projection $P_i$ does. Data acquisition only needs to make a sufficient evidence space available so that $P_i$ can select from it. Therefore, we define the following data acquisition requirements:
 
 \begin{itemize}
-    \item The system should retrieve data from at least one data source, namely: Blockchain explorers, Decentralized storage networks, Marketplace APIs, Rarity analytics, and Oracle services.
+    \item The system should retrieve data from at least one data source, such as blockchain explorers, decentralized storage networks, marketplace APIs, rarity analytics, or oracle services.
     \item Data from heterogeneous sources must be normalized into a canonical schema that enables cross-asset comparison. For example, metadata from OpenSea, LooksRare, and native IPFS retrieval must be transformed into a standard JSON structure with standardized field names.
-    \item Each data point should be accompanied by provenance information: the source URL, retrieval timestamp, and content hash. This ensures verifiability and auditability of the acquired information.
+    \item Each data point should be accompanied by provenance information, including the source URL, retrieval timestamp, and content hash. This supports verifiability and auditability of the acquired information.
 \end{itemize}
 
 The system needs the following capabilities to analyse assets and prepare decisions under a stated intent.
@@ -365,9 +365,9 @@ Prompts are one way to produce such a trace from a language model. The trace, no
 The transaction preparation component does not execute decisions on its own. It turns an approved valuation trace into a candidate on-chain transaction, simulates it against current state, packages the call data, and submits it for human approval. After a human approves a specific candidate, the component forwards it to the NFTAA-controlled account. The trace-gated authorisation property of Section \ref{sec:proof-targets} is then enforced before any state change is settled. The component knows the smart-contract address, the call data, and the expected effects, and it records the simulation result and the gas estimate alongside the trace. It manages signing, nonce ordering, and broadcast. It does not bypass approval, does not act outside the policy boundary, and does not amend a trace after approval. If the on-chain policy refuses the transaction, the component reports the cause and reopens the trace for revision instead of retrying around the policy.
 
 
-A natural-language request does not become an on-chain action on its own. The valuation component reads evidence and emits trace fields. The decision component finalises the trace. The transaction preparation component constructs and simulates a candidate call. Tool-augmented language models \cite{Mialon2023} and Model Context Protocol adapters supply the structured interface used at the retrieval and call-construction steps. MCP adapters bind agent queries to fixed function signatures, which makes tool invocation reproducible across sessions and narrows the surface on which retrieved content or prompts can shift behaviour. Listing \ref{lst:tooldefiniton} gives a short tool signature for cross-chain DOT teleport. Full tool definitions are not the contribution of this chapter.
+A natural-language request does not become an on-chain action on its own. The valuation component reads evidence and emits trace fields. The decision component finalises the trace. The transaction preparation component constructs and simulates a candidate call. Tool-augmented language models \cite{Mialon2023} and Model Context Protocol adapters supply the structured interface used at the retrieval and call-construction steps. MCP adapters bind agent queries to fixed function signatures, which makes tool invocation reproducible across sessions and narrows the surface on which retrieved content or prompts can shift behaviour. Listing \ref{lst:tooldefinition} gives a short tool signature for cross-chain DOT teleport. Full tool definitions are not the contribution of this chapter.
 
-\begin{lstlisting}[caption={Illustrative tool signature for cross-chain transfer.}, label={lst:tooldefiniton}]
+\begin{lstlisting}[caption={Illustrative tool signature for cross-chain transfer.}, label={lst:tooldefinition}]
 teleport_tokens({ from, to, symbol, amount, receiver })
 // Returns: a candidate transaction packaged for human approval.
 // Does not authorise execution. NFTAA-level policy checks gate
@@ -391,7 +391,7 @@ Under this paradigm, an NFT can hold balances, accept calls from approved transa
 One advantage of NFTAA is that it can hold standard fungible and non-fungible assets. Assets sitting inside a user-owned NFTAA can be used in yield farming, lending, borrowing, or derivative markets without leaving the account. The user keeps custody through the parent NFT. The transaction preparation component proposes the underlying calls (provide liquidity, stake governance tokens, post collateral). Each call settles only when it is linked to a valid trace, has been approved by the user, and is permitted by the NFTAA policy. The account stays separate from the user's primary wallet, which keeps the audit trail clean.
 
 Smart contracts at this layer make sure only approved transactions linked to a valid trace can initiate state changes, by encoding access control and invariants. NFTAA differs from existing token-bound account standards, especially ERC-6551 \cite{Wang2023} and the alternatives that build on it, such as Virtuals.
-First, instead of depending on a strict, registry-based deployment architecture, NFTAA enables the integration of specific semantic rules directly into the token contract. ERC-6551 limits the design space for specific behaviors by deploying each token-bound account via a singleton registry with a deterministic address scheme. By enabling developers to create custom account logic inside the NFT contract itself, NFTAA eliminates this restriction and provides fine-grained control over state transitions, access patterns, and execution policies.
+First, instead of depending on a strict, registry-based deployment architecture, NFTAA enables the integration of specific semantic rules directly into the token contract. ERC-6551 limits the design space for specific behaviours by deploying each token-bound account via a singleton registry with a deterministic address scheme. By enabling developers to create custom account logic inside the NFT contract itself, NFTAA eliminates this restriction and provides fine-grained control over state transitions, access patterns, and execution policies.
 
 Second, NFTAA preserves complete compatibility with current account types. NFTAA can easily communicate with multi-signature accounts, smart contract wallets, proxy contracts, and externally owned accounts (EOAs), in contrast to alternatives that need specific wallet infrastructure. In the context of the Internet of Value, where agents must coordinate with a variety of actors, such as human users, other agents, and smart contract protocols, this interoperability is essential.
 
@@ -433,7 +433,7 @@ The Polkadot OpenGov treasury is a useful example. At the time of writing it hol
 
 The agent in this loop may retrieve proposal evidence, summarise contributor history, identify risks, map evidence into governance-instantiated A/D/U, emit a $\textit{proceed}$, $\textit{defer}$, or $\textit{decline}$ recommendation, and produce an audit trace. The agent may not vote on its own, replace voters, claim objective truth, or move treasury funds without human approval. We use \emph{auditable}, \emph{evidence-based}, and \emph{traceable} in preference to \emph{objective}. Expert reviewers and W3F guidelines are reference judgements, not ground truth.
 
-This framing is narrower than full automation but more defensible. Voters keep governance authority. The trace makes the recommendation inspectable, including the evidence excluded by $P_i$ and the gaps that triggered $\textit{defer}$. A historical record of validated traces, kept under one trace schema, lets future evaluations look up comparable past proposals instead of leaning on any one reviewer's memory. Open issues remain. How do we keep agent recommendations aligned with community values. How do we resist manipulation or gaming of the evidence space. How do we balance scalable evaluation with human oversight. The architecture answers these structurally. The trace exposes its evidence and its gaps, deterministic validation refuses incomplete traces, and final voting authority stays with human participants or formally authorised governance actors.
+This framing is narrower than full automation but more defensible. Voters keep governance authority. The trace makes the recommendation inspectable, including the evidence excluded by $P_i$ and the gaps that triggered $\textit{defer}$. A historical record of validated traces, kept under one trace schema, lets future evaluations look up comparable past proposals instead of leaning on any one reviewer's memory. Open issues remain. How do we keep agent recommendations aligned with community values? How do we resist manipulation or gaming of the evidence space? How do we balance scalable evaluation with human oversight? The architecture answers these questions structurally. The trace exposes its evidence and its gaps, deterministic validation refuses incomplete traces, and final voting authority stays with human participants or formally authorised governance actors.
 
 
 
