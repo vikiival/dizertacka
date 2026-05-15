@@ -63,7 +63,14 @@ All three configurations were given access to the same set of underlying data so
 
 \subsubsection{Decision quality}
 
-Table \ref{tab:nft-decision} reports decision agreement and component score deviation for the four NFT tasks. The reference decisions across the four intents are \textit{defer} for long-term holding, \textit{decline} for speculative trading, \textit{proceed} for collateralisation, and \textit{proceed} for functional access. Reference $A/D/U$ medians are $(6.0, 6.5, 5.0)$, $(7.0, 3.0, 3.0)$, $(7.0, 6.0, 7.0)$, and $(6.5, 7.5, 8.0)$ respectively, reflecting how the same asset is interpreted differently under each intent. The panel split 2:1 on long-term holding, with two evaluators deferring pending evidence that the floor is supported by holder fundamentals rather than the brand-licensing narrative, and one evaluator voting \textit{proceed} on the brand-utility thesis.
+Table \ref{tab:nft-decision} reports decision agreement and component score deviation for the four NFT tasks. The reference decisions across the four intents are \textit{defer} for long-term holding, \textit{decline} for speculative trading, \textit{proceed} for collateralisation, and \textit{proceed} for functional access. Reference $A/D/U$ medians are $(6.0, 6.5, 5.0)$, $(7.0, 3.0, 3.0)$, $(7.0, 6.0, 7.0)$, and $(6.5, 7.5, 8.0)$ respectively, reflecting how the same asset is interpreted differently under each intent. Figure \ref{fig:nft-adu-heatmap} makes this load-bearing claim visible: the same Pudgy Penguin produces a different $A/D/U$ signature under each intent, with speculative trading collapsing Durability and Utility and functional access elevating them. The panel split 2:1 on long-term holding, with two evaluators deferring pending evidence that the floor is supported by holder fundamentals rather than the brand-licensing narrative, and one evaluator voting \textit{proceed} on the brand-utility thesis.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\columnwidth,height=0.45\textheight,keepaspectratio]{images/evaluation-adu-heatmap.png}
+    \caption[Reference $A/D/U$ medians for one NFT under four intents]{Reference $A/D/U$ medians for Pudgy Penguin \#1419 under the four NFT intents. The same asset produces a different valuation signature under each intent, illustrating that intent reshapes what Availability, Durability, and Utility \emph{mean}, not only their relative weights.}
+    \label{fig:nft-adu-heatmap}
+\end{figure}
 
 \begin{table}[h]
 \centering
@@ -168,9 +175,18 @@ The results are consistent with the empirical claim made under RQ3. Across the t
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\columnwidth,height=0.72\textheight,keepaspectratio]{images/evaluation-headline.png}
+    \includegraphics[width=0.75\columnwidth,height=0.55\textheight,keepaspectratio]{images/evaluation-headline.png}
     \caption{Decision agreement with the reference panel across the twelve evaluation tasks.}
     \label{fig:evaluation-headline}
+\end{figure}
+
+Figure \ref{fig:evaluation-per-domain} disaggregates the headline by domain. The ICVP advantage is not a single-domain artefact: the full configuration matches the reference panel on all four tasks in each of the NFT, stETH, and Polkadot OpenGov domains, while both baselines lose more tasks where the intent reshapes which evidence matters and what the valuation dimensions mean. The single-dimensional baseline performs worst on Polkadot OpenGov, where no single visible signal substitutes for public-resource stewardship reasoning, and the fixed-weight baseline narrows the gap on stETH where its generic profile happens to align with three of the four intents.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\columnwidth,height=0.5\textheight,keepaspectratio]{images/evaluation-per-domain.png}
+    \caption[Decision agreement by domain]{Decision agreement by domain (4 tasks per domain). The full ICVP configuration matches the reference panel in every domain; the baselines lose tasks asymmetrically depending on how strongly intent reshapes the evidence and dimension semantics.}
+    \label{fig:evaluation-per-domain}
 \end{figure}
 
 The fixed-weight baseline narrows the gap on tasks where the dominant intent is close to the implicit weights of the fixed profile, but it widens again on tasks where the intent reshapes which evidence matters and what the valuation dimensions mean. This pattern is consistent with the conceptual argument of Chapter \ref{sec:design}. Intent does not only change how much Availability, Durability, and Utility matter. It changes what counts as Availability, Durability, and Utility, and the fixed-weight baseline does not represent that change. The paired pattern holds across decision quality, false-proceed rate, evidence relevance, mapping quality, trace completeness, and robustness conditions, so the evaluation supports the claim that ICVP is the better approach among the tested alternatives for this benchmark. The evaluation is not a proof that ICVP is the only adequate model, and we do not claim that the agentic implementation is correct in any stronger sense than the trace-gated authorisation property of Section \ref{sec:proof-targets} guarantees. The results indicate, however, that intent-conditioned projection and dimension instantiation, made auditable through valuation traces and validated by a deterministic check, may improve decision quality, evidence relevance, and auditability relative to the two reduced baselines on this benchmark.
